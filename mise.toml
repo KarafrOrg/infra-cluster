@@ -1,0 +1,23 @@
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[hooks]
+postinstall = """
+pip install --upgrade pip
+pip install ansible kubernetes openshift
+"""
+
+[tasks.setup]
+description = "Initial setup"
+run = [
+    "mise install",
+    "pip install -r requirements.txt || true"
+]
+
+[tasks.ansible-ping]
+description = "Test Ansible connectivity"
+run = "ansible all -i inventory.ini -m ping"
+
+[tasks.k8s-context]
+description = "Show current kubectl context"
+run = "kubectl config current-context"
