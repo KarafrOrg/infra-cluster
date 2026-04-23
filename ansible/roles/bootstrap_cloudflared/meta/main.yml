@@ -1,0 +1,11 @@
+---
+dependencies: []
+galaxy_info:
+  role_name: bootstrap_cloudflared
+  description: Installs and configures cloudflared tunnel on Proxmox nodes
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - bullseye

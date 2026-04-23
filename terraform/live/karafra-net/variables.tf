@@ -1,0 +1,1 @@
+../../modules/talos-cluster/variables.tf

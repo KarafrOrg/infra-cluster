@@ -1,0 +1,19 @@
+---
+# defaults file for proxmox_vm_provisioner
+bootstrap_proxmox_proxmox_cluster_name: "karafra-net"
+bootstrap_proxmox_proxmox_api_host: "{{ ansible_host }}"
+bootstrap_proxmox_proxmox_api_user: "root@pam"
+bootstrap_proxmox_proxmox_api_password: "{{ prepare_proxmox_root_password }}"
+bootstrap_proxmox_proxmox_node_name: "{{ inventory_hostname }}"
+
+# VM defaults
+bootstrap_proxmox_vm_default_bridge: "vmbr1"
+bootstrap_proxmox_vm_default_storage: "local-lvm"
+bootstrap_proxmox_vm_default_nameserver: "8.8.8.8"
+bootstrap_proxmox_vm_default_searchdomain: "local"
+bootstrap_proxmox_vm_default_ostype: "l26"
+bootstrap_proxmox_vm_default_template: "ubuntu-2204-cloud"
+
+# Cloud-init settings
+bootstrap_proxmox_vm_default_ssh_keys: [ ]
+bootstrap_proxmox_vm_default_user: "ubuntu"

@@ -1,0 +1,39 @@
+pve_cluster_enabled: yes
+pve_group: proxmox_nodes
+pve_cluster_clustername: "{{ bootstrap_proxmox_proxmox_cluster_name }}"
+pve_check_for_kernel_update: true
+pve_run_system_upgrades: true
+pve_extra_packages:
+  - qemu-guest-agent
+  - python3-proxmoxer
+pve_watchdog: ipmi
+pve_zfs_enabled: yes
+pve_zfs_zed_email: root@karafra.net
+pve_ceph_enabled: false
+pve_cluster_name: "{{ bootstrap_proxmox_proxmox_cluster_name }}"
+
+pve_datacenter_cfg:
+  console: xtermjs
+
+pve_cluster_addr0: "{{ ansible_host }}"
+
+pve_remove_subscription_warning: true
+pve_enterprise_repo_enabled: false
+
+pve_users:
+  - name: root@pam
+    password: "{{ prepare_proxmox_root_password }}"
+  - name: "{{ prepare_proxmox_proxmox_user }}@pve"
+    password: "{{ prepare_proxmox_proxmox_user_password }}"
+    email: "admin+automation@karafra.net"
+    firstname: Automation
+    lastname: Admin
+    comment: "Automation admin user"
+
+pve_acls:
+  - path: /
+    roles: [ Administrator ]
+    users:
+      - "{{ prepare_proxmox_proxmox_user }}@pve"
+
+pve_ssl_private_key: ""

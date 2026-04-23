@@ -1,0 +1,86 @@
+[tasks.setup]
+description = "Initial setup"
+run = [
+    "mise install",
+    "pip install -r requirements.txt || true"
+]
+
+[tasks.ansible-ping]
+description = "Test Ansible connectivity"
+run = "ansible all -i inventory.ini -m ping"
+
+[tasks.k8s-context]
+description = "Show current kubectl context"
+run = "kubectl config current-context"
+
+[tasks.install-requirements]
+description = "Install Ansible and Kubernetes dependencies"
+run = """
+ansible-galaxy install -r ansible/requirements.yml
+"""
+
+[tasks.secrets]
+description = "Fetch secrets from GCP Secret Manager into Terraform auto vars"
+run = """
+get_secret() {
+  gcloud secrets versions access latest --secret="$1"
+}
+
+cat > terraform/live/${ENVIRONMENT}/secrets.auto.tfvars <<EOF
+cloudflare_api_token = "$(get_secret cloudflare-api-token)"
+EOF
+
+echo "Secrets written to live/${ENVIRONMENT}/secrets.auto.tfvars"
+"""
+
+[tasks.init]
+description = "Initialize Terraform"
+depends = ["secrets"]
+run = """
+echo "Initializing Terraform in live/${ENVIRONMENT}"
+echo "Using terraform version $(terraform version)"
+
+cd "terraform/live/${ENVIRONMENT}"
+terraform init
+"""
+
+[tasks.plan]
+description = "Terraform plan"
+run = """
+cd "terraform/live/${ENVIRONMENT}"
+terraform plan
+"""
+
+[tasks.apply]
+description = "Terraform apply"
+run = """
+cd "terraform/live/${ENVIRONMENT}"
+terraform apply -auto-approve
+"""
+
+[tasks.validate]
+description = "Terraform validate"
+run = """
+cd "terraform/live/${ENVIRONMENT}"
+terraform validate
+"""
+
+[tasks.unlock-state]
+description = "Unlock Terraform state"
+run = """
+cd "terraform/live/${ENVIRONMENT}"
+terraform force-unlock -force-lock=true
+"""
+
+[tasks.destroy]
+description = "Terraform destroy"
+run = """
+cd "terraform/live/${ENVIRONMENT}"
+terraform destroy -auto-approve
+"""
+
+[tasks.ansible-deploy]
+description = "Run Ansible playbook to deploy cluster"
+run = """
+ansible-playbook -i inventory.ini ansible/playbooks/bootstrap-cluster.yml -e "cloudflared_tunel_token=${CLOUDFLARED_TUNNEL_TOKEN}"
+"""

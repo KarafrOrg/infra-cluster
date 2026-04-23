@@ -1,0 +1,6 @@
+---
+dependencies:
+  - name: lae.proxmox
+    src: git@github.com:lae/ansible-role-proxmox.git
+    scm: git
+    tags: [ never ]

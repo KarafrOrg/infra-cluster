@@ -1,0 +1,62 @@
+---
+- name: Add Cloudflare GPG key
+  ansible.builtin.get_url:
+    url: https://pkg.cloudflare.com/cloudflare-main.gpg
+    dest: /usr/share/keyrings/cloudflare-main.gpg
+    mode: "0644"
+  tags:
+    - cloudflared
+
+- name: Add Cloudflare apt repository
+  ansible.builtin.template:
+    src: cloudflared.sources.j2
+    dest: /etc/apt/sources.list.d/cloudflared.sources
+    mode: "0644"
+  tags:
+    - cloudflared
+
+- name: Install cloudflared
+  ansible.builtin.apt:
+    name: cloudflared
+    state: present
+    update_cache: true
+  tags:
+    - cloudflared
+
+- name: Stop cloudflared service before reinstall
+  ansible.builtin.service:
+    name: cloudflared
+    state: stopped
+  ignore_errors: true
+  tags:
+    - cloudflared
+
+- name: Uninstall existing cloudflared service
+  ansible.builtin.command:
+    cmd: cloudflared service uninstall
+  ignore_errors: true
+  tags:
+    - cloudflared
+
+- name: Install cloudflared as systemd service
+  ansible.builtin.command:
+    cmd: cloudflared service install {{ cloudflared_tunnel_token }}
+  register: cloudflared_install
+  failed_when: cloudflared_install.rc != 0 and 'already installed' not in cloudflared_install.stderr
+  ignore_errors: true
+  tags:
+    - cloudflared
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags:
+    - cloudflared
+
+- name: Ensure cloudflared service is enabled and started
+  ansible.builtin.service:
+    name: cloudflared
+    state: started
+    enabled: true
+  tags:
+    - cloudflared

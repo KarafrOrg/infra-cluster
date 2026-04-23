@@ -1,0 +1,37 @@
+---
+- name: Bootstrap Cluster
+  hosts: proxmox_nodes
+  become: true
+  gather_facts: true
+  vars:
+    prepare_proxmox_root_password: "ChangeMe123!"
+    prepare_proxmox_proxmox_user: "terraform"
+    prepare_proxmox_proxmox_user_password: "ChangeMe123!"
+
+
+  tasks:
+    - name: Ensure required collections are available
+      ansible.builtin.debug:
+        msg: "Starting VM provisioning for {{ inventory_hostname }}"
+
+    - name: Bootstrap cloudflared tunnel
+      include_role:
+        name: bootstrap_cloudflared
+        apply:
+          tags:
+            - cloudflared
+      tags:
+        - cloudflared
+
+    - name: Bootstrap proxmox cluster
+      include_role:
+        name: bootstrap_proxmox
+        apply:
+          tags:
+            - proxmox
+            - proxmox-cluster
+            - bootstrap
+      tags:
+        - proxmox
+        - proxmox-cluster
+        - bootstrap
