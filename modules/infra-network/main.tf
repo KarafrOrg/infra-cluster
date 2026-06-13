@@ -71,5 +71,137 @@ resource "helm_release" "external_dns" {
   namespace        = var.external_dns.release_namespace
   depends_on       = [kubectl_manifest.external_dns_cloudflare_secret]
 }
+// endregion
 
+// region Gateway API
+data "http" "gateway_api_crds" {
+  url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/${var.gateway_api.gateway_api_crds_version}/standard-install.yaml"
+}
+
+data "kubectl_file_documents" "gateway_api_crds" {
+  content = data.http.gateway_api_crds.response_body
+}
+
+resource "kubectl_manifest" "gateway_api_crds" {
+  for_each  = var.gateway_api.enabled ? toset(data.kubectl_file_documents.gateway_api_crds.documents) : toset([])
+  yaml_body = each.value
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_namespace" {
+  count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/namespace.tftmpl.yaml", {
+    cloudflare_namespace = local.cloudflare_namespace
+  })
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_external_secret" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/external-secret.tftmpl.yaml", {
+    gateway_api_namespace        = var.gateway_api.namespace
+    cloudflare_account_id_secret = var.gateway_api.cloudflare_account_id_secret
+    cloudflare_api_token_secret  = var.gateway_api.cloudflare_api_token_secret
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_service_account" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/service-account.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_cluster_role" {
+  count     = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/cluster-role.tftmpl.yaml", {})
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_cluster_role_binding" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/cluster-role-binding.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_service_account]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_leader_election_role" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/leader-election-role.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_leader_election_role_binding" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/leader-election-role-binding.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [
+    kubectl_manifest.cloudflare_gateway_leader_election_role,
+    kubectl_manifest.cloudflare_gateway_service_account,
+  ]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_metrics_service" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/metrics-service.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_image_metrics_service" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/image-metrics-service.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_controller" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/deployment.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+    gateway_api_version   = var.gateway_api.version
+  })
+  depends_on = [
+    kubectl_manifest.cloudflare_gateway_service_account,
+    kubectl_manifest.cloudflare_gateway_cluster_role_binding,
+    kubectl_manifest.cloudflare_gateway_leader_election_role_binding,
+    kubectl_manifest.gateway_api_crds,
+  ]
+}
+
+resource "kubectl_manifest" "cloudflare_gatewayclass" {
+  count = var.gateway_api.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gatewayclass.tftmpl.yaml", {
+    gateway_api_namespace = var.gateway_api.namespace
+  })
+  depends_on = [
+    kubectl_manifest.cloudflare_gateway_controller,
+    kubectl_manifest.cloudflare_gateway_external_secret,
+  ]
+}
+// endregion
+
+// region cloudflared DaemonSet
+resource "kubectl_manifest" "cloudflared_external_secret" {
+  count = var.cloudflared.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/cloudflared/external-secret.tftmpl.yaml", {
+    cloudflared_namespace          = var.cloudflared.namespace
+    cloudflare_tunnel_token_secret = var.cloudflared.tunnel_token_secret
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+}
+
+resource "kubectl_manifest" "cloudflared_daemonset" {
+  count = var.cloudflared.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/cloudflared/daemonset.tftmpl.yaml", {
+    cloudflared_namespace = var.cloudflared.namespace
+    cloudflared_image     = var.cloudflared.image
+  })
+  depends_on = [kubectl_manifest.cloudflared_external_secret]
+}
 // endregion

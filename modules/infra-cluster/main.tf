@@ -27,6 +27,8 @@ module "infra_network" {
   // region Network-related Helm release configurations
   metallb      = var.metallb
   external_dns = var.external_dns
+  gateway_api  = var.gateway_api
+  cloudflared  = var.cloudflared
   // endregion
   depends_on = [module.infra_secrets]
 }

@@ -55,3 +55,25 @@ variable "external_dns" {
     cloudflare_api_token_secret = string
   })
 }
+
+variable "gateway_api" {
+  description = "Cloudflare Kubernetes Gateway API controller (pl4nty/cloudflare-kubernetes-gateway) configuration."
+  type = object({
+    enabled                      = optional(bool, true)
+    version                      = optional(string, "v0.9.0")
+    gateway_api_crds_version     = optional(string, "v1.5.1")
+    namespace                    = optional(string, "cloudflare-gateway")
+    cloudflare_account_id_secret = string
+    cloudflare_api_token_secret  = string
+  })
+}
+
+variable "cloudflared" {
+  description = "cloudflared DaemonSet configuration for routing Cloudflare tunnel traffic to LoadBalancer services."
+  type = object({
+    enabled             = optional(bool, true)
+    namespace           = optional(string, "cloudflare-gateway")
+    image               = optional(string, "docker.io/cloudflare/cloudflared:2026.6.0")
+    tunnel_token_secret = string
+  })
+}

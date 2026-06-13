@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: image
+    app.kubernetes.io/name: cloudflare-kubernetes-gateway
+    app.kubernetes.io/managed-by: kustomize
+  name: cloudflare-image-metrics-service
+  namespace: ${gateway_api_namespace}
+spec:
+  ports:
+  - name: http
+    port: 2000
+    protocol: TCP
+    targetPort: 2000
+  selector:
+    app.kubernetes.io/name: cloudflare-kubernetes-gateway
+    app.kubernetes.io/managed-by: GatewayController
