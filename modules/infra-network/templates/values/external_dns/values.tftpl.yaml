@@ -1,0 +1,34 @@
+namespaceOverride: "${external_dns_helm_release_namespace}"
+
+provider:
+  name: cloudflare
+
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-token
+        key: CF_API_TOKEN
+
+domainFilters:
+  - "${external_dns_domain_filter}"
+
+txtOwnerId: "${external_dns_txt_owner_id}"
+
+policy: sync
+
+sources:
+  - service
+  - ingress
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

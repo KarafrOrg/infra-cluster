@@ -1,0 +1,42 @@
+namespaceOverride: "${external_secrets_helm_release_namespace}"
+
+replicaCount: 3
+
+leaderElect: true
+
+crds:
+  create: true
+
+serviceAccount:
+  create: true
+  name: external-secrets
+
+webhook:
+  replicaCount: 3
+  certManager:
+    enabled: false
+
+certController:
+  replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: external-secrets

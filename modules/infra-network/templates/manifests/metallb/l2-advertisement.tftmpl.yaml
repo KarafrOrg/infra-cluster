@@ -1,0 +1,8 @@
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: internal
+  namespace: ${metallb_helm_release_namespace}
+spec:
+  ipAddressPools:
+    - ${metallb_ip_pool_name}

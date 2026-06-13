@@ -1,0 +1,41 @@
+namespaceOverride: "${argo_cd_helm_release_namespace}"
+global:
+  domain: "${argocd_ingress_domain}"
+
+configs:
+  params:
+    server.insecure: true
+
+server:
+  replicas: 3
+  service:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: "${argocd_ingress_domain}"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: "${argocd_ingress_domain}"
+    tls: false
+
+controller:
+  replicas: 2
+
+repoServer:
+  replicas: 2
+
+applicationSet:
+  replicas: 2
+
+redis:
+  enabled: false
+
+redis-ha:
+  enabled: true
+  replicas: 3
+
+ha:
+  enabled: true
+
+dex:
+  enabled: false

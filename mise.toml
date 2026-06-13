@@ -1,0 +1,60 @@
+[tasks.secrets]
+description = "Fetch secrets from GCP Secret Manager into Terraform auto vars"
+run = """
+get_secret() {
+  gcloud secrets versions access latest --project="$(gcloud config get-value project)" --secret="$1"
+}
+
+cat > live/${ENVIRONMENT}/secrets.auto.tfvars <<EOF
+k8s_cluster_token = "$(get_secret k8s-production-client-token)"
+k8s_cluster_host  = "$(get_secret k8s-production-host)"
+EOF
+
+echo "Secrets written to live/${ENVIRONMENT}/secrets.auto.tfvars"
+"""
+
+[tasks.init]
+description = "Initialize Terraform"
+depends = ["secrets"]
+run = """
+echo "Initializing Terraform in live/${ENVIRONMENT}"
+echo "Using terraform version $(terraform version)"
+
+cd "live/${ENVIRONMENT}"
+terraform init
+"""
+
+[tasks.plan]
+description = "Terraform plan"
+run = """
+cd "live/${ENVIRONMENT}"
+terraform plan
+"""
+
+[tasks.apply]
+description = "Terraform apply"
+run = """
+cd "live/${ENVIRONMENT}"
+terraform apply -auto-approve
+"""
+
+[tasks.validate]
+description = "Terraform validate"
+run = """
+cd "live/${ENVIRONMENT}"
+terraform validate
+"""
+
+[tasks.unlock-state]
+description = "Unlock Terraform state"
+run = """
+cd "live/${ENVIRONMENT}"
+terraform force-unlock -force-lock=true
+"""
+
+[tasks.destroy]
+description = "Terraform destroy"
+run = """
+cd "live/${ENVIRONMENT}"
+terraform destroy -auto-approve
+"""
