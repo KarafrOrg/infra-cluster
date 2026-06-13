@@ -4,10 +4,6 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.17.0"
     }
-    http = {
-      source  = "hashicorp/http"
-      version = "3.4.5"
-    }
     google = {
       source  = "hashicorp/google"
       version = "7.36.0"

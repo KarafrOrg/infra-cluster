@@ -28,7 +28,7 @@ variable "gateway_api" {
   type = object({
     enabled                      = optional(bool, true)
     version                      = optional(string, "v0.9.0")
-    gateway_api_crds_version     = optional(string, "v1.5.1")
+    gateway_api_crds_version     = optional(string, "0.2.0")
     namespace                    = optional(string, "cloudflare-gateway")
     cloudflare_account_id_secret = string
     cloudflare_api_token_secret  = string

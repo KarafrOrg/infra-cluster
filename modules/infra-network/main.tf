@@ -74,13 +74,17 @@ resource "helm_release" "external_dns" {
 // endregion
 
 // region Gateway API
-data "http" "gateway_api_crds" {
-  url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/${var.gateway_api.gateway_api_crds_version}/standard-install.yaml"
-}
-
-resource "kubectl_manifest" "gateway_api_crds" {
-  for_each  = var.gateway_api.enabled ? { for doc in local._gateway_api_crd_docs : sha256(doc) => doc } : {}
-  yaml_body = each.value
+resource "helm_release" "gateway_api_crds" {
+  count            = var.gateway_api.enabled ? 1 : 0
+  name             = "gateway-api"
+  repository       = "oci://ghcr.io/nicklasfrahm/charts"
+  chart            = "gateway-api"
+  version          = var.gateway_api.gateway_api_crds_version
+  upgrade_install  = true
+  create_namespace = true
+  namespace        = "gateway-system"
+  timeout          = 300
+  wait             = true
 }
 
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
@@ -166,7 +170,7 @@ resource "kubectl_manifest" "cloudflare_gateway_controller" {
     kubectl_manifest.cloudflare_gateway_service_account,
     kubectl_manifest.cloudflare_gateway_cluster_role_binding,
     kubectl_manifest.cloudflare_gateway_leader_election_role_binding,
-    kubectl_manifest.gateway_api_crds,
+    helm_release.gateway_api_crds,
   ]
 }
 
