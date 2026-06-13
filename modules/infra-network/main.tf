@@ -78,12 +78,8 @@ data "http" "gateway_api_crds" {
   url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/${var.gateway_api.gateway_api_crds_version}/standard-install.yaml"
 }
 
-data "kubectl_file_documents" "gateway_api_crds" {
-  content = data.http.gateway_api_crds.response_body
-}
-
 resource "kubectl_manifest" "gateway_api_crds" {
-  for_each  = var.gateway_api.enabled ? toset(data.kubectl_file_documents.gateway_api_crds.documents) : toset([])
+  for_each  = var.gateway_api.enabled ? { for doc in local._gateway_api_crd_docs : sha256(doc) => doc } : {}
   yaml_body = each.value
 }
 
