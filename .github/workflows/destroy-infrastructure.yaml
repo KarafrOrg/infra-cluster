@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   destroy-terraform-infra:
-    uses: KarafrOrg/actions-terraform-core/.github/workflows/destroy.yaml@v0.1.0
+    uses: KarafrOrg/actions-terraform-core/.github/workflows/destroy.yaml@v0.1.2
     name: Destroy Terraform infrastructure
     with:
       environment: karafra-net
