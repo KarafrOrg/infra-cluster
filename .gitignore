@@ -45,6 +45,7 @@ secrets/
 *.swo
 *~
 .DS_Store
+.eclipse/
 
 # Backup files
 *.backup
