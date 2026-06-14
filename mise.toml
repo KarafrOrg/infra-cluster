@@ -50,7 +50,7 @@ terraform validate
 description = "Unlock Terraform state"
 run = """
 cd "live/${ENVIRONMENT}"
-terraform force-unlock -force "karafra-net/infra-cluster"
+terraform force-unlock -force "${ENVIRONMENT}/infra-cluster"
 """
 
 [tasks.destroy]
