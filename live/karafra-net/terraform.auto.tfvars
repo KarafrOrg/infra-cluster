@@ -28,5 +28,6 @@ gateway_api = {
 
 cloudflared = {
   enabled             = true
+  account_id          = "8a3ba4f6454120fd71c65e87612dd13c"
   tunnel_token_secret = "cloudflared-tunnel-token"
 }

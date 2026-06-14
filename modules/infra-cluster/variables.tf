@@ -8,6 +8,12 @@ variable "k8s_cluster_host" {
   type        = string
 }
 
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token used to provision tunnels and DNS via the Cloudflare Terraform provider."
+  type        = string
+  sensitive   = true
+}
+
 variable "argocd" {
   description = "Whether to deploy Argo CD in the cluster."
   type = object({
@@ -74,6 +80,8 @@ variable "cloudflared" {
     enabled             = optional(bool, true)
     namespace           = optional(string, "cloudflare-gateway")
     image               = optional(string, "docker.io/cloudflare/cloudflared:2026.6.0")
+    tunnel_name         = optional(string, "cloudflared")
     tunnel_token_secret = string
+    account_id          = string
   })
 }

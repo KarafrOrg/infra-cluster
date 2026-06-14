@@ -1,5 +1,9 @@
 terraform {
   required_providers {
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "5.5.0"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "2.17.0"
@@ -21,6 +25,10 @@ terraform {
       name = "infra-cluster"
     }
   }
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
 
 provider "kubectl" {

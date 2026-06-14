@@ -23,6 +23,11 @@ variable "external_dns" {
   })
 }
 
+variable "gcp_project_id" {
+  description = "The GCP project ID where Secret Manager secrets are stored."
+  type        = string
+}
+
 variable "gateway_api" {
   description = "Cloudflare Kubernetes Gateway API controller (pl4nty/cloudflare-kubernetes-gateway) configuration."
   type = object({
@@ -41,6 +46,8 @@ variable "cloudflared" {
     enabled             = optional(bool, true)
     namespace           = optional(string, "cloudflare-gateway")
     image               = optional(string, "docker.io/cloudflare/cloudflared:2026.6.0")
+    tunnel_name         = optional(string, "cloudflared")
     tunnel_token_secret = string
+    account_id          = string
   })
 }

@@ -1,5 +1,8 @@
 terraform {
   required_providers {
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+    }
     helm = {
       source = "hashicorp/helm"
     }

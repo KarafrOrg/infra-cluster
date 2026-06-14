@@ -187,13 +187,44 @@ resource "kubectl_manifest" "cloudflare_gatewayclass" {
 // endregion
 
 // region cloudflared DaemonSet
+
+resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
+  count      = var.cloudflared.enabled ? 1 : 0
+  account_id = var.cloudflared.account_id
+  name       = var.cloudflared.tunnel_name
+}
+
+data "cloudflare_zero_trust_tunnel_cloudflared_token" "this" {
+  count      = var.cloudflared.enabled ? 1 : 0
+  account_id = var.cloudflared.account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.this[0].id
+}
+
+resource "google_secret_manager_secret" "cloudflared_tunnel_token" {
+  count     = var.cloudflared.enabled ? 1 : 0
+  project   = var.gcp_project_id
+  secret_id = var.cloudflared.tunnel_token_secret
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "cloudflared_tunnel_token" {
+  count       = var.cloudflared.enabled ? 1 : 0
+  secret      = google_secret_manager_secret.cloudflared_tunnel_token[0].id
+  secret_data = data.cloudflare_zero_trust_tunnel_cloudflared_token.this[0].token
+}
+
 resource "kubectl_manifest" "cloudflared_external_secret" {
   count = var.cloudflared.enabled ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/cloudflared/external-secret.tftmpl.yaml", {
     cloudflared_namespace          = var.cloudflared.namespace
     cloudflare_tunnel_token_secret = var.cloudflared.tunnel_token_secret
   })
-  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
+  depends_on = [
+    kubectl_manifest.cloudflare_gateway_namespace,
+    google_secret_manager_secret_version.cloudflared_tunnel_token,
+  ]
 }
 
 resource "kubectl_manifest" "cloudflared_daemonset" {
