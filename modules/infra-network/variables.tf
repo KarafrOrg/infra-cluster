@@ -3,7 +3,7 @@ variable "metallb" {
   type = object({
     enabled            = optional(bool, true)
     release_name       = optional(string, "metallb")
-    release_namespace  = optional(string, "metallb-system")
+    release_namespace  = optional(string, "infra-network")
     release_repository = optional(string, "https://metallb.github.io/metallb")
     internal_cidr      = optional(string, "10.44.0.0/24")
   })

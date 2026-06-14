@@ -51,7 +51,6 @@ description = "Unlock Terraform state"
 run = """
 cd "live/${ENVIRONMENT}"
 terraform force-unlock -force "${ENVIRONMENT}/infra-cluster" || true
-
 """
 
 [tasks.destroy]
