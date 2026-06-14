@@ -6,8 +6,21 @@ module "infra_argo" {
   argo_cd_helm_release_namespace  = var.argocd.release_namespace
   argo_cd_helm_release_repository = var.argocd.release_repository
   argocd_ingress_domain           = var.argocd.ingress_domain
+  cluster_issuer_name             = var.cert_manager.cluster_issuer_name
   // endregion
-  depends_on = [module.infra_secrets, module.infra_network]
+  depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
+}
+
+module "infra_certs" {
+  source                             = "../infra-certs"
+  count                              = var.cert_manager.enabled ? 1 : 0
+  release_name                       = var.cert_manager.release_name
+  release_namespace                  = var.cert_manager.release_namespace
+  release_version                    = var.cert_manager.release_version
+  cluster_issuer_name                = var.cert_manager.cluster_issuer_name
+  acme_email                         = var.cert_manager.acme_email
+  cloudflare_api_token_gcp_secret_id = var.cert_manager.cloudflare_api_token_gcp_secret_id
+  depends_on                         = [module.infra_secrets]
 }
 
 module "infra_secrets" {

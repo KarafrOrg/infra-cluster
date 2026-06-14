@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-server-tls
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  secretName: argocd-server-tls
+  dnsNames:
+    - ${argocd_ingress_domain}
+  issuerRef:
+    name: ${cluster_issuer_name}
+    kind: ClusterIssuer
+    group: cert-manager.io
+  duration: 2160h    # 90 days
+  renewBefore: 360h  # renew 15 days before expiry

@@ -3,6 +3,12 @@ argocd = {
   ingress_domain = "argocd.kubernetes.karafra.net"
 }
 
+cert_manager = {
+  enabled                            = true
+  acme_email                         = "admin@karafra.net"
+  cloudflare_api_token_gcp_secret_id = "cert-manager-dns01-cloudflare-token"
+}
+
 external_secrets = {
   enabled           = true
   gcp_sa_account_id = "k8s-secret-reader"

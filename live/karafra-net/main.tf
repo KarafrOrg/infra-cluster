@@ -1,6 +1,7 @@
 module "infra_cluster" {
   source               = "../../modules/infra-cluster"
   argocd               = var.argocd
+  cert_manager         = var.cert_manager
   external_secrets     = var.external_secrets
   k8s_cluster_host     = var.k8s_cluster_host
   cloudflare_api_token = var.cloudflare_api_token

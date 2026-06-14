@@ -17,3 +17,9 @@ variable "argocd_ingress_domain" {
   description = "The domain name for the Argo CD ingress."
   type        = string
 }
+
+variable "cluster_issuer_name" {
+  description = "Name of the cert-manager ClusterIssuer to use for the ArgoCD origin TLS certificate."
+  type        = string
+  default     = "letsencrypt-prod"
+}

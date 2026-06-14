@@ -9,14 +9,9 @@ configs:
 server:
   replicas: 3
   service:
-    type: LoadBalancer
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: "${argocd_ingress_domain}"
+    type: ClusterIP
   ingress:
-    enabled: true
-    ingressClassName: nginx
-    hostname: "${argocd_ingress_domain}"
-    tls: false
+    enabled: false
 
 controller:
   replicas: 2

@@ -25,6 +25,19 @@ variable "argocd" {
   })
 }
 
+variable "cert_manager" {
+  description = "cert-manager configuration for automated TLS certificate management via Let's Encrypt DNS-01."
+  type = object({
+    enabled                            = optional(bool, true)
+    release_name                       = optional(string, "cert-manager")
+    release_namespace                  = optional(string, "infra-certs")
+    release_version                    = optional(string, "v1.17.2")
+    cluster_issuer_name                = optional(string, "letsencrypt-prod")
+    acme_email                         = string
+    cloudflare_api_token_gcp_secret_id = string
+  })
+}
+
 variable "external_secrets" {
   description = "Whether to deploy External Secrets in the cluster."
   type = object({
