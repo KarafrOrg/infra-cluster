@@ -17,11 +17,18 @@ variable "cloudflare_api_token" {
 variable "argocd" {
   description = "Whether to deploy Argo CD in the cluster."
   type = object({
-    enabled            = optional(bool, true),
-    release_name       = optional(string, "argocd"),
-    release_namespace  = optional(string, "infra-cicd"),
-    release_repository = optional(string, "https://argoproj.github.io/argo-helm"),
-    ingress_domain     = string,
+    enabled                                  = optional(bool, true),
+    release_name                             = optional(string, "argocd"),
+    release_namespace                        = optional(string, "infra-cicd"),
+    release_repository                       = optional(string, "https://argoproj.github.io/argo-helm"),
+    ingress_domain                           = string,
+    github_org                               = string,
+    github_app_id_gcp_secret_id              = string,
+    github_app_installation_id_gcp_secret_id = string,
+    github_app_private_key_gcp_secret_id     = string,
+    github_sso_client_id_gcp_secret_id       = string,
+    github_sso_client_secret_gcp_secret_id   = string,
+    github_sso_admin_team                    = optional(string, "argocd-admins"),
   })
 }
 

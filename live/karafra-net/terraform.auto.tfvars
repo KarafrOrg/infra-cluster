@@ -1,6 +1,12 @@
 argocd = {
-  enabled        = true
-  ingress_domain = "argocd.kubernetes.karafra.net"
+  enabled                                  = true
+  ingress_domain                           = "argocd.kubernetes.karafra.net"
+  github_org                               = "KarafrOrg"
+  github_app_id_gcp_secret_id              = "argocd-github-app-id"
+  github_app_installation_id_gcp_secret_id = "argocd-github-app-installation-id"
+  github_app_private_key_gcp_secret_id     = "argocd-github-app-private-key"
+  github_sso_client_id_gcp_secret_id       = "argocd-github-sso-client-id"
+  github_sso_client_secret_gcp_secret_id   = "argocd-github-sso-client-secret"
 }
 
 cert_manager = {

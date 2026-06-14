@@ -5,6 +5,23 @@ global:
 configs:
   params:
     server.insecure: true
+  cm:
+    # language=yaml
+    dex.config: |
+      connectors:
+        - type: github
+          id: github
+          name: GitHub
+          config:
+            clientID: $$argocd-github-sso-secret:clientID
+            clientSecret: $$argocd-github-sso-secret:clientSecret
+            orgs:
+              - name: ${github_org}
+  rbac:
+    policy.default: role:readonly
+    # language=csv
+    policy.csv: |
+      g, ${github_org}:${github_sso_admin_team}, role:admin
 
 server:
   replicas: 3
@@ -33,4 +50,4 @@ ha:
   enabled: true
 
 dex:
-  enabled: false
+  enabled: true
