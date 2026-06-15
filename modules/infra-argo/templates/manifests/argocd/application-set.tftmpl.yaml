@@ -5,6 +5,7 @@ metadata:
   name: github-org-discovery
   namespace: ${argo_cd_helm_release_namespace}
 spec:
+  goTemplate: true
   generators:
     - scmProvider:
         github:
@@ -14,17 +15,17 @@ spec:
           - labelMatch: 'argocd-infra'
   template:
     metadata:
-      name: '{{ repository | lower | replace "_" "-" }}-{{ .path.basename }}'
+      name: '{{ .repository | lower | replace "_" "-" }}'
       namespace: ${argo_cd_helm_release_namespace}
     spec:
       project: default
       source:
-        repoURL: '{{ url }}'
+        repoURL: '{{ .url }}'
         targetRevision: HEAD
         path: .
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{ repository | lower | replace "_" "-" }}'
+        namespace: '{{ .repository | lower | replace "_" "-" }}'
       syncPolicy:
         automated:
           prune: true
