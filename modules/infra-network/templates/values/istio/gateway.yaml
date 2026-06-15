@@ -1,0 +1,11 @@
+replicaCount: 0
+service:
+  type: None
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: istio
+        app.kubernetes.io/component: gateway

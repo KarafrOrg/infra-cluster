@@ -40,6 +40,20 @@ variable "gateway_api" {
   })
 }
 
+variable "istio" {
+  description = "Istio service mesh configuration (ambient mode) with CNI, ztunnel, and ingress gateway."
+  type = object({
+    enabled           = optional(bool, true)
+    release_namespace = optional(string, "infra-network")
+    version           = optional(string, "1.28.2")
+    cni_platform      = optional(string, "k3s")
+    tracing_service   = optional(string, "infra-monitoring-tempo.infra-monitoring.svc.cluster.local")
+    tracing_port      = optional(number, 4317)
+    ingress_domain    = string
+    cert_issuer_name  = optional(string, "letsencrypt-dns")
+  })
+}
+
 variable "cloudflared" {
   description = "cloudflared DaemonSet configuration for routing Cloudflare tunnel traffic to LoadBalancer services."
   type = object({

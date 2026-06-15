@@ -44,6 +44,11 @@ cloudflared = {
   tunnel_token_secret = "cloudflared-tunnel-token"
 }
 
+istio = {
+  enabled        = true
+  ingress_domain = "karafra.net"
+}
+
 eck_operator = {
   enabled = true
 }

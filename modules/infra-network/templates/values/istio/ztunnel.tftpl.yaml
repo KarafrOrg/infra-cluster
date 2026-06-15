@@ -1,0 +1,1 @@
+istioNamespace: ${istio_namespace}

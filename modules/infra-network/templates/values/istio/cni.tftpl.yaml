@@ -1,0 +1,7 @@
+global:
+  istioNamespace: ${istio_namespace}
+  platform: ${cni_platform}
+profile: ambient
+cni:
+  repair:
+    enabled: true

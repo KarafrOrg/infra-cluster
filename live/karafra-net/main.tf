@@ -11,4 +11,5 @@ module "infra_cluster" {
   gateway_api          = var.gateway_api
   cloudflared          = var.cloudflared
   eck_operator         = var.eck_operator
+  istio                = var.istio
 }

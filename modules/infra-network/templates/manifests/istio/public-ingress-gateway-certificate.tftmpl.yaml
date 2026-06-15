@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: public-ingress-gateway-certificate
+  namespace: ${istio_namespace}
+spec:
+  secretName: public-ingress-gateway-tls
+  issuerRef:
+    name: ${cert_issuer_name}
+    kind: ClusterIssuer
+  dnsNames:
+    - '*.${ingress_domain}'
+    - ${ingress_domain}

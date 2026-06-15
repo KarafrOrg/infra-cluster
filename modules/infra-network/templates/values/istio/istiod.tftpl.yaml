@@ -1,0 +1,18 @@
+global:
+  istioNamespace: ${istio_namespace}
+profile: ambient
+meshConfig:
+  enableTracing: true
+  extensionProviders:
+    - name: tempo
+      opentelemetry:
+        service: ${tracing_service}
+        port: ${tracing_port}
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: istio
+        app.kubernetes.io/component: istiod

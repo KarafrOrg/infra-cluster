@@ -50,6 +50,7 @@ module "infra_network" {
   external_dns   = var.external_dns
   gateway_api    = var.gateway_api
   cloudflared    = var.cloudflared
+  istio          = var.istio
   // endregion
   depends_on = [module.infra_secrets]
 }

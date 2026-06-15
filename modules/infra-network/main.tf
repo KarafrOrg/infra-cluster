@@ -186,6 +186,143 @@ resource "kubectl_manifest" "cloudflare_gatewayclass" {
 }
 // endregion
 
+// region Istio
+
+resource "helm_release" "istio_base" {
+  count            = var.istio.enabled ? 1 : 0
+  name             = "istio-base"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "base"
+  version          = var.istio.version
+  upgrade_install  = true
+  create_namespace = true
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.istio.release_namespace
+  values = [
+    templatefile("${path.module}/templates/values/istio/base.tftpl.yaml", {
+      istio_namespace = var.istio.release_namespace
+    })
+  ]
+}
+
+resource "helm_release" "istio_istiod" {
+  count            = var.istio.enabled ? 1 : 0
+  name             = "istiod"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "istiod"
+  version          = var.istio.version
+  upgrade_install  = true
+  create_namespace = true
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.istio.release_namespace
+  values = [
+    templatefile("${path.module}/templates/values/istio/istiod.tftpl.yaml", {
+      istio_namespace = var.istio.release_namespace
+      tracing_service = var.istio.tracing_service
+      tracing_port    = var.istio.tracing_port
+    })
+  ]
+  depends_on = [helm_release.istio_base]
+}
+
+resource "helm_release" "istio_cni" {
+  count            = var.istio.enabled ? 1 : 0
+  name             = "istio-cni"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "cni"
+  version          = var.istio.version
+  upgrade_install  = true
+  create_namespace = true
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.istio.release_namespace
+  values = [
+    templatefile("${path.module}/templates/values/istio/cni.tftpl.yaml", {
+      istio_namespace = var.istio.release_namespace
+      cni_platform    = var.istio.cni_platform
+    })
+  ]
+  depends_on = [helm_release.istio_istiod]
+}
+
+resource "helm_release" "istio_ztunnel" {
+  count            = var.istio.enabled ? 1 : 0
+  name             = "ztunnel"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "ztunnel"
+  version          = var.istio.version
+  upgrade_install  = true
+  create_namespace = true
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.istio.release_namespace
+  values = [
+    templatefile("${path.module}/templates/values/istio/ztunnel.tftpl.yaml", {
+      istio_namespace = var.istio.release_namespace
+    })
+  ]
+  depends_on = [helm_release.istio_istiod]
+}
+
+resource "helm_release" "istio_gateway" {
+  count            = var.istio.enabled ? 1 : 0
+  name             = "istio-gateway"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "gateway"
+  version          = var.istio.version
+  upgrade_install  = true
+  create_namespace = true
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.istio.release_namespace
+  values           = [file("${path.module}/templates/values/istio/gateway.yaml")]
+  depends_on       = [helm_release.istio_istiod]
+}
+
+resource "kubectl_manifest" "istio_telemetry_tracing" {
+  count = var.istio.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/istio/telemetry-tracing.tftmpl.yaml", {
+    istio_namespace = var.istio.release_namespace
+  })
+  depends_on = [helm_release.istio_istiod]
+}
+
+resource "kubectl_manifest" "istio_ingress_gateway_certificate" {
+  count = var.istio.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/istio/public-ingress-gateway-certificate.tftmpl.yaml", {
+    istio_namespace  = var.istio.release_namespace
+    ingress_domain   = var.istio.ingress_domain
+    cert_issuer_name = var.istio.cert_issuer_name
+  })
+  depends_on = [helm_release.istio_istiod]
+}
+
+resource "kubectl_manifest" "istio_public_ingress_gateway" {
+  count = var.istio.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/istio/public-ingress-gateway.tftmpl.yaml", {
+    istio_namespace = var.istio.release_namespace
+    ingress_domain  = var.istio.ingress_domain
+  })
+  depends_on = [
+    helm_release.istio_gateway,
+    kubectl_manifest.istio_ingress_gateway_certificate,
+  ]
+}
+
+// endregion
+
 // region cloudflared DaemonSet
 resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
   count      = var.cloudflared.enabled ? 1 : 0
