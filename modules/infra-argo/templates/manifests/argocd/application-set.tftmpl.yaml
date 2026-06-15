@@ -11,7 +11,7 @@ spec:
           organization: ${argo_cd_github_org}
           appSecretName: github-app-repo-creds
         filters:
-          - labelMatch: '^(?=.*(^|,)argocd(,|$))(?=.*(^|,)infra(,|$)).*'
+          - labelMatch: '(^|,)(argocd,.*infra|infra,.*argocd)(,|$)'
   template:
     metadata:
       name: '{{ repository | lower | replace "_" "-" }}'
