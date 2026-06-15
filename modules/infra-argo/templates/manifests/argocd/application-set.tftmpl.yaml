@@ -15,16 +15,18 @@ spec:
           - labelMatch: 'argocd-infra'
   template:
     metadata:
+      # language=gotemplate
       name: '{{ .repository | lower | replace "_" "-" }}'
       namespace: ${argo_cd_helm_release_namespace}
     spec:
       project: default
       source:
         repoURL: '{{ .url }}'
-        targetRevision: HEAD
+        targetRevision: '{{ .branch }}'
         path: .
       destination:
         server: https://kubernetes.default.svc
+        # language=gotemplate
         namespace: '{{ .repository | lower | replace "_" "-" }}'
       syncPolicy:
         automated:
