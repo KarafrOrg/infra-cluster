@@ -21,7 +21,9 @@ spec:
     spec:
       project: default
       source:
+        # language=gotemplate
         repoURL: '{{ .url }}'
+        # language=gotemplate
         targetRevision: '{{ .branch }}'
         path: .
       destination:
