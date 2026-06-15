@@ -18,7 +18,7 @@ spec:
                 - labelMatch: 'argocd-infra'
           - git:
               repoURL: '{{ .url }}'
-              revision: '{{ .branch }}'
+              revision: HEAD
               directories:
                 - path: '*'
   template:
