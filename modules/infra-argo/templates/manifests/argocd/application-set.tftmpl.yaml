@@ -7,28 +7,32 @@ metadata:
 spec:
   goTemplate: true
   generators:
-    - scmProvider:
-        github:
-          organization: ${argo_cd_github_org}
-          appSecretName: github-app-repo-creds
-        filters:
-          - labelMatch: 'argocd-infra'
+    - matrix:
+        generators:
+          - scmProvider:
+              github:
+                organization: ${argo_cd_github_org}
+                appSecretName: github-app-repo-creds
+                cloneProtocol: https
+              filters:
+                - labelMatch: 'argocd-infra'
+          - git:
+              repoURL: '{{ .url }}'
+              revision: '{{ .branch }}'
+              directories:
+                - path: '*'
   template:
     metadata:
-      # language=gotemplate
-      name: '{{ .repository | lower | replace "_" "-" }}'
+      name: '{{ .repository | lower | replace "_" "-" }}-{{ .path.basename }}'
       namespace: ${argo_cd_helm_release_namespace}
     spec:
       project: default
       source:
-        # language=gotemplate
         repoURL: '{{ .url }}'
-        # language=gotemplate
-        targetRevision: '{{ .branch }}'
-        path: .
+        targetRevision: HEAD
+        path: '{{ .path.path }}'
       destination:
         server: https://kubernetes.default.svc
-        # language=gotemplate
         namespace: '{{ .repository | lower | replace "_" "-" }}'
       syncPolicy:
         automated:
