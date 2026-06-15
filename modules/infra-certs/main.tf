@@ -11,6 +11,10 @@ resource "helm_release" "cert_manager" {
   cleanup_on_fail  = true
   atomic           = true
 
+  values = [
+    file("${path.module}/templates/values/cert_manager/values.yaml")
+  ]
+
   set {
     name  = "crds.enabled"
     value = "true"

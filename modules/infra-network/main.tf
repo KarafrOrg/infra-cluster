@@ -187,7 +187,6 @@ resource "kubectl_manifest" "cloudflare_gatewayclass" {
 // endregion
 
 // region cloudflared DaemonSet
-
 resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
   count      = var.cloudflared.enabled ? 1 : 0
   account_id = var.cloudflared.account_id
