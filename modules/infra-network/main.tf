@@ -291,14 +291,6 @@ resource "helm_release" "istio_gateway" {
   depends_on       = [helm_release.istio_istiod]
 }
 
-resource "kubectl_manifest" "istio_telemetry_tracing" {
-  count = var.istio.enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/templates/manifests/istio/telemetry-tracing.tftmpl.yaml", {
-    istio_namespace = var.istio.release_namespace
-  })
-  depends_on = [helm_release.istio_istiod]
-}
-
 resource "kubectl_manifest" "istio_ingress_gateway_certificate" {
   count = var.istio.enabled ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/istio/public-ingress-gateway-certificate.tftmpl.yaml", {
