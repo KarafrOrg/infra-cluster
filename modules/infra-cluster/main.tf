@@ -53,3 +53,8 @@ module "infra_network" {
   // endregion
   depends_on = [module.infra_secrets]
 }
+
+module "infra_elastic" {
+  source       = "../infra-elastic"
+  eck_operator = var.eck_operator
+}
