@@ -13,8 +13,8 @@ configs:
           id: github
           name: GitHub
           config:
-            clientID: $$argocd-github-sso-secret:clientID
-            clientSecret: $$argocd-github-sso-secret:clientSecret
+            clientID: $argocd-github-sso-secret:clientID
+            clientSecret: $argocd-github-sso-secret:clientSecret
             orgs:
               - name: ${github_org}
   rbac:
