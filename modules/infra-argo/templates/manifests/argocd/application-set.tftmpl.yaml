@@ -10,15 +10,15 @@ spec:
     - matrix:
         generators:
           - scmProvider:
+              cloneProtocol: https
               github:
                 organization: ${argo_cd_github_org}
                 appSecretName: github-app-repo-creds
-                cloneProtocol: https
               filters:
                 - labelMatch: 'argocd-infra'
           - git:
-              repoURL: '{{ .url }}'
-              revision: HEAD
+              repoURL: 'https://github.com/KarafrOrg/{{ .repository }}'
+              revision: 'HEAD'
               directories:
                 - path: '*'
   template:
@@ -29,7 +29,7 @@ spec:
       project: default
       source:
         repoURL: '{{ .url }}'
-        targetRevision: HEAD
+        targetRevision: '{{ .branch }}'
         path: '{{ .path.path }}'
       destination:
         server: https://kubernetes.default.svc
