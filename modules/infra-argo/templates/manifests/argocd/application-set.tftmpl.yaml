@@ -11,10 +11,10 @@ spec:
           organization: ${argo_cd_github_org}
           appSecretName: github-app-repo-creds
         filters:
-          - labelMatch: '(^|,)(argocd,.*infra|infra,.*argocd)(,|$)'
+          - labelMatch: 'argocd-infra'
   template:
     metadata:
-      name: '{{ repository | lower | replace "_" "-" }}'
+      name: '{{ repository | lower | replace "_" "-" }}-{{ .path.basename }}'
       namespace: ${argo_cd_helm_release_namespace}
     spec:
       project: default
