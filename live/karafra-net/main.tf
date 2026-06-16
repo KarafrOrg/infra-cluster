@@ -10,6 +10,5 @@ module "infra_cluster" {
   external_dns         = var.external_dns
   gateway_api          = var.gateway_api
   cloudflared          = var.cloudflared
-  eck_operator         = var.eck_operator
   istio                = var.istio
 }
