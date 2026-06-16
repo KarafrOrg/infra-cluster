@@ -48,7 +48,3 @@ istio = {
   enabled        = true
   ingress_domain = "karafra.net"
 }
-
-eck_operator = {
-  enabled = true
-}
