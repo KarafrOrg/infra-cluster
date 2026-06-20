@@ -6,6 +6,8 @@ metadata:
   namespace: ${argo_cd_helm_release_namespace}
 spec:
   goTemplate: true
+  syncPolicy:
+    applicationsSync: create-update
   generators:
     - matrix:
         generators:
