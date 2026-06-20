@@ -17,48 +17,40 @@ speaker:
     limits:
       cpu: 100m
       memory: 128Mi
-
-frr-k8s:
-  frrk8s:
+  livenessProbe:
+    timeoutSeconds: 5
+  readinessProbe:
+    timeoutSeconds: 5
+  startupProbe:
+    failureThreshold: 60
+  frr:
+    enabled: true
     resources:
       requests:
-        cpu: 50m
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  reloader:
+    resources:
+      requests:
+        cpu: 25m
         memory: 64Mi
       limits:
         cpu: 100m
-        memory: 256Mi
-    frr:
-      resources:
-        requests:
-          cpu: 50m
-          memory: 64Mi
-        limits:
-          cpu: 100m
-          memory: 256Mi
-    reloader:
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          cpu: 50m
-          memory: 128Mi
-    frrMetrics:
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          cpu: 50m
-          memory: 128Mi
-    frrStatus:
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          cpu: 50m
-          memory: 128Mi
+        memory: 128Mi
+  frrMetrics:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+frrk8s:
+  enabled: false
 
 prometheus:
   serviceMonitor:
