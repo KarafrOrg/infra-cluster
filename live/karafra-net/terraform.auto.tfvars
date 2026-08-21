@@ -10,7 +10,7 @@ argocd = {
 }
 
 cert_manager = {
-  enabled                            = false
+  enabled                            = true
   acme_email                         = "admin@karafra.net"
   cloudflare_api_token_gcp_secret_id = "cert-manager-dns01-cloudflare-token"
 }
