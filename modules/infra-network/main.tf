@@ -81,7 +81,7 @@ data "kubectl_file_documents" "gateway_api_crds" {
 resource "kubectl_manifest" "gateway_api_crds" {
   for_each = (var.gateway_api.enabled || var.cloudflared.enabled) ? {
     for document in data.kubectl_file_documents.gateway_api_crds.documents :
-    yamldecode(document).metadata.name => document
+    "${yamldecode(document).apiVersion}/${yamldecode(document).kind}/${yamldecode(document).metadata.name}" => document
   } : {}
 
   yaml_body = each.value
@@ -89,7 +89,7 @@ resource "kubectl_manifest" "gateway_api_crds" {
 
 moved {
   from = kubectl_manifest.gateway_api_crds[0]
-  to   = kubectl_manifest.gateway_api_crds["backendtlspolicies.gateway.networking.k8s.io"]
+  to   = kubectl_manifest.gateway_api_crds["apiextensions.k8s.io/v1/CustomResourceDefinition/backendtlspolicies.gateway.networking.k8s.io"]
 }
 
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
