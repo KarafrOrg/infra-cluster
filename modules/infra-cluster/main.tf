@@ -1,3 +1,18 @@
+resource "kubernetes_cluster_role_v1" "unauthenticated_oidc_jwks" {
+  metadata {
+    name = "unauthenticated-oidc-jwks"
+  }
+
+  rule {
+    non_resource_urls = [
+      "/.well-known/openid-configuration",
+      "/openid/v1/jwks",
+    ]
+
+    verbs = ["get"]
+  }
+}
+
 resource "kubernetes_cluster_role_binding_v1" "unauthenticated_oidc_jwks" {
   metadata {
     name = "unauthenticated-oidc-jwks"
@@ -6,7 +21,7 @@ resource "kubernetes_cluster_role_binding_v1" "unauthenticated_oidc_jwks" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = "system:discovery"
+    name      = kubernetes_cluster_role_v1.unauthenticated_oidc_jwks.metadata[0].name
   }
 
   subject {
