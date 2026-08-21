@@ -1,3 +1,21 @@
+resource "kubernetes_cluster_role_binding_v1" "unauthenticated_oidc_jwks" {
+  metadata {
+    name = "unauthenticated-oidc-jwks"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "system:discovery"
+  }
+
+  subject {
+    kind      = "Group"
+    name      = "system:unauthenticated"
+    api_group = "rbac.authorization.k8s.io"
+  }
+}
+
 module "infra_argo" {
   source = "../infra-argo"
   count  = var.argocd.enabled ? 1 : 0
