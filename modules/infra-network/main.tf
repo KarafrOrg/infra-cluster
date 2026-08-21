@@ -74,9 +74,22 @@ resource "helm_release" "external_dns" {
 // endregion
 
 // region Gateway API
+data "kubectl_file_documents" "gateway_api_crds" {
+  content = file("${path.module}/templates/manifests/gateway_api/crds.yaml")
+}
+
 resource "kubectl_manifest" "gateway_api_crds" {
-  count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
-  yaml_body = file("${path.module}/templates/manifests/gateway_api/crds.yaml")
+  for_each = (var.gateway_api.enabled || var.cloudflared.enabled) ? {
+    for document in data.kubectl_file_documents.gateway_api_crds.documents :
+    yamldecode(document).metadata.name => document
+  } : {}
+
+  yaml_body = each.value
+}
+
+moved {
+  from = kubectl_manifest.gateway_api_crds[0]
+  to   = kubectl_manifest.gateway_api_crds["backendtlspolicies.gateway.networking.k8s.io"]
 }
 
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
