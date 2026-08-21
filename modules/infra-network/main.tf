@@ -178,7 +178,7 @@ resource "kubectl_manifest" "cloudflare_gateway_controller" {
     kubectl_manifest.cloudflare_gateway_service_account,
     kubectl_manifest.cloudflare_gateway_cluster_role_binding,
     kubectl_manifest.cloudflare_gateway_leader_election_role_binding,
-    helm_release.gateway_api_crds,
+    kubectl_manifest.gateway_api_crds,
   ]
 }
 
