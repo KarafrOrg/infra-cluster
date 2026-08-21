@@ -32,18 +32,22 @@ provider "cloudflare" {
 }
 
 provider "kubectl" {
-  host             = var.k8s_cluster_host
-  token            = var.k8s_cluster_token
-  load_config_file = false
-  insecure         = true
+  host                   = "https://${var.k8s_cluster_host}:6443"
+  client_certificate     = base64decode(var.k8s_cluster_client_certificate)
+  client_key             = base64decode(var.k8s_cluster_token)
+  cluster_ca_certificate = base64decode(var.k8s_cluster_certificate_authority)
+  load_config_file       = false
 }
 
 provider "google" {}
 
 provider "helm" {
   kubernetes {
-    host     = var.k8s_cluster_host
-    token    = var.k8s_cluster_token
-    insecure = true
+    host = "https://${var.k8s_cluster_host}:6443"
+
+    client_certificate     = base64decode(var.k8s_cluster_client_certificate)
+    client_key             = base64decode(var.k8s_cluster_token)
+    cluster_ca_certificate = base64decode(var.k8s_cluster_certificate_authority)
   }
 }
+

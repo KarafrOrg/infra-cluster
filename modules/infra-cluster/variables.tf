@@ -3,6 +3,16 @@ variable "k8s_cluster_token" {
   type        = string
 }
 
+variable "k8s_cluster_client_certificate" {
+  description = "The client certificate for the Kubernetes cluster."
+  type        = string
+}
+
+variable "k8s_cluster_certificate_authority" {
+  description = "The certificate authority for the Kubernetes cluster."
+  type        = string
+}
+
 variable "k8s_cluster_host" {
   description = "The host URL of the Kubernetes cluster."
   type        = string
