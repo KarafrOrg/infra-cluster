@@ -255,7 +255,10 @@ resource "helm_release" "istio_cni" {
       cni_platform    = var.istio.cni_platform
     })
   ]
-  depends_on = [helm_release.istio_istiod]
+  depends_on = [
+    helm_release.istio_istiod,
+    kubectl_manifest.cloudflare_gateway_namespace,
+  ]
 }
 
 resource "helm_release" "istio_ztunnel" {
@@ -276,7 +279,10 @@ resource "helm_release" "istio_ztunnel" {
       istio_namespace = var.istio.release_namespace
     })
   ]
-  depends_on = [helm_release.istio_istiod]
+  depends_on = [
+    helm_release.istio_istiod,
+    kubectl_manifest.cloudflare_gateway_namespace,
+  ]
 }
 
 resource "helm_release" "istio_gateway" {

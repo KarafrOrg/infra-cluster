@@ -4,4 +4,6 @@ metadata:
   labels:
     app.kubernetes.io/name: cloudflare-kubernetes-gateway
     app.kubernetes.io/managed-by: kustomize
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest
   name: ${cloudflare_namespace}
