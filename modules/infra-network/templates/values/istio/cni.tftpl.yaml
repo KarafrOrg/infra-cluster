@@ -1,6 +1,8 @@
 global:
   istioNamespace: ${istio_namespace}
+%{ if cni_platform != null && cni_platform != "" ~}
   platform: ${cni_platform}
+%{ endif ~}
 profile: ambient
 cni:
   repair:

@@ -95,7 +95,17 @@ moved {
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
   count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/namespace.tftmpl.yaml", {
-    cloudflare_namespace = local.cloudflare_namespace
+    infra_network_namespace = local.cloudflare_namespace
+  })
+}
+
+resource "kubectl_manifest" "istio_namespace" {
+  count = var.istio.enabled && (
+    !(var.gateway_api.enabled || var.cloudflared.enabled) ||
+    var.istio.release_namespace != local.cloudflare_namespace
+  ) ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/namespace.tftmpl.yaml", {
+    infra_network_namespace = var.istio.release_namespace
   })
 }
 
@@ -200,7 +210,7 @@ resource "helm_release" "istio_base" {
   chart            = "base"
   version          = var.istio.version
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
@@ -211,6 +221,10 @@ resource "helm_release" "istio_base" {
       istio_namespace = var.istio.release_namespace
     })
   ]
+  depends_on = [
+    kubectl_manifest.cloudflare_gateway_namespace,
+    kubectl_manifest.istio_namespace,
+  ]
 }
 
 resource "helm_release" "istio_istiod" {
@@ -220,7 +234,7 @@ resource "helm_release" "istio_istiod" {
   chart            = "istiod"
   version          = var.istio.version
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
@@ -233,7 +247,11 @@ resource "helm_release" "istio_istiod" {
       tracing_port    = var.istio.tracing_port
     })
   ]
-  depends_on = [helm_release.istio_base]
+  depends_on = [
+    helm_release.istio_base,
+    kubectl_manifest.cloudflare_gateway_namespace,
+    kubectl_manifest.istio_namespace,
+  ]
 }
 
 resource "helm_release" "istio_cni" {
@@ -243,7 +261,7 @@ resource "helm_release" "istio_cni" {
   chart            = "cni"
   version          = var.istio.version
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
@@ -258,6 +276,7 @@ resource "helm_release" "istio_cni" {
   depends_on = [
     helm_release.istio_istiod,
     kubectl_manifest.cloudflare_gateway_namespace,
+    kubectl_manifest.istio_namespace,
   ]
 }
 
@@ -268,7 +287,7 @@ resource "helm_release" "istio_ztunnel" {
   chart            = "ztunnel"
   version          = var.istio.version
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
@@ -282,6 +301,7 @@ resource "helm_release" "istio_ztunnel" {
   depends_on = [
     helm_release.istio_istiod,
     kubectl_manifest.cloudflare_gateway_namespace,
+    kubectl_manifest.istio_namespace,
   ]
 }
 
@@ -292,7 +312,7 @@ resource "helm_release" "istio_gateway" {
   chart            = "gateway"
   version          = var.istio.version
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true

@@ -122,7 +122,7 @@ variable "istio" {
     enabled           = optional(bool, true)
     release_namespace = optional(string, "infra-network")
     version           = optional(string, "1.28.2")
-    cni_platform      = optional(string, "k3s")
+    cni_platform      = optional(string)
     tracing_service   = optional(string, "infra-monitoring-tempo.infra-monitoring.svc.cluster.local")
     tracing_port      = optional(number, 4317)
     ingress_domain    = string
