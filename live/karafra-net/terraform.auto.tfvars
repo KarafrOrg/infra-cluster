@@ -16,7 +16,7 @@ cert_manager = {
 }
 
 external_secrets = {
-  enabled           = false
+  enabled           = true
   gcp_sa_account_id = "k8s-secret-reader"
   gcp_project_id    = "karafra-net"
 }
