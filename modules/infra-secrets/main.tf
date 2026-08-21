@@ -1,3 +1,12 @@
+resource "kubectl_manifest" "namespace" {
+  yaml_body = templatefile(
+    "${path.module}/templates/manifests/external_secrets/ns.tftmpl.yaml",
+    {
+      external_secrets_helm_release_namespace = var.external_secrets_helm_release_namespace
+    }
+  )
+}
+
 resource "helm_release" "external_secrets" {
   chart      = "external-secrets"
   name       = var.external_secrets_helm_release_name
@@ -8,13 +17,13 @@ resource "helm_release" "external_secrets" {
     })
   ]
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
   atomic           = true
   namespace        = var.external_secrets_helm_release_namespace
-  depends_on       = [kubectl_manifest.gcp_sa_sm_secret]
+  depends_on       = [kubectl_manifest.namespace, kubectl_manifest.gcp_sa_sm_secret]
 }
 
 data "google_service_account" "external_secrets" {
@@ -36,6 +45,7 @@ resource "kubectl_manifest" "gcp_sa_sm_secret" {
       credentials_json_b64                    = google_service_account_key.gcp_sa_sm_secret_key.private_key
     }
   )
+  depends_on = [kubectl_manifest.namespace]
 }
 
 resource "kubectl_manifest" "cluster_secret_store" {
@@ -44,5 +54,5 @@ resource "kubectl_manifest" "cluster_secret_store" {
     gcp_project_id                          = var.gcp_project_id,
     external_secrets_helm_release_namespace = var.external_secrets_helm_release_namespace
   })
-  depends_on = [kubectl_manifest.gcp_sa_sm_secret, helm_release.external_secrets]
+  depends_on = [kubectl_manifest.gcp_sa_sm_secret, helm_release.external_secrets, kubectl_manifest.namespace]
 }

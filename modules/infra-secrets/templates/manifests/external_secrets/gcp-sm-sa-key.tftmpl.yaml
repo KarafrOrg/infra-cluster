@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ${gcp_sa_sm_secret_name}
+  namespace: ${external_secrets_helm_release_namespace}
 type: Opaque
 data:
   credentials.json: ${credentials_json_b64}
