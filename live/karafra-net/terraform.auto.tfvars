@@ -27,13 +27,13 @@ metallb = {
 }
 
 external_dns = {
-  enabled                     = false
+  enabled                     = true
   domain_filter               = "karafra.net"
   cloudflare_api_token_secret = "cloudflare-api-token"
 }
 
 gateway_api = {
-  enabled                      = false
+  enabled                      = true
   cloudflare_account_id_secret = "cloudflare-account-id"
   cloudflare_api_token_secret  = "cloudflare-api-token"
 }
@@ -45,6 +45,6 @@ cloudflared = {
 }
 
 istio = {
-  enabled        = false
+  enabled        = true
   ingress_domain = "karafra.net"
 }
