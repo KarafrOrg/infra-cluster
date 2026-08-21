@@ -76,7 +76,7 @@ resource "helm_release" "external_dns" {
 // region Gateway API
 resource "kubectl_manifest" "gateway_api_crds" {
   count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
-  yaml_body = file("${path.module}/templates/manifests/gateway_api/crds.tftmpl.yaml")
+  yaml_body = file("${path.module}/templates/manifests/gateway_api/crds.yaml")
 }
 
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
