@@ -74,25 +74,9 @@ resource "helm_release" "external_dns" {
 // endregion
 
 // region Gateway API
-data "http" "gateway_api_crds" {
-  count = var.gateway_api.enabled ? 1 : 0
-
-  url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/v${var.gateway_api.gateway_api_crds_version}/standard-install.yaml"
-}
-
-resource "kubectl_manifest" "gateway_api_crds" {
-  for_each = var.gateway_api.enabled ? {
-    for manifest in yamldecode(data.http.gateway_api_crds[0].response_body) :
-    "${manifest.kind}/${manifest.metadata.name}" => manifest
-  } : {}
-
-  yaml_body = yamlencode(each.value)
-
-  server_side_apply = true
-
-  depends_on = [
-    data.http.gateway_api_crds
-  ]
+resource "kubectl_manifest" "cloudflare_gateway_namespace" {
+  count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
+  yaml_body = file("${path.module}/templates/manifests/gateway_api/crds.tftmpl.yaml")
 }
 
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
