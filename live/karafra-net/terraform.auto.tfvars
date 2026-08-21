@@ -1,5 +1,5 @@
 argocd = {
-  enabled                                  = false
+  enabled                                  = true
   ingress_domain                           = "argocd.kubernetes.karafra.net"
   github_org                               = "KarafrOrg"
   github_app_id_gcp_secret_id              = "argocd-github-app-id"
