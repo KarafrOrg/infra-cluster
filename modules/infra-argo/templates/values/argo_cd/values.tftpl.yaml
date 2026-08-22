@@ -1,12 +1,13 @@
 namespaceOverride: "${argo_cd_helm_release_namespace}"
+
 global:
   domain: "${argocd_ingress_domain}"
 
 configs:
   params:
     server.insecure: true
+
   cm:
-    # language=yaml
     dex.config: |
       connectors:
         - type: github
@@ -17,18 +18,29 @@ configs:
             clientSecret: $argocd-github-sso-secret:clientSecret
             orgs:
               - name: ${github_org}
+
   rbac:
     policy.default: role:readonly
-    # language=csv
     policy.csv: |
       g, ${github_org}:${github_sso_admin_team}, role:admin
 
 server:
   replicas: 3
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
   service:
     type: ClusterIP
+
   ingress:
     enabled: false
+
   resources:
     requests:
       cpu: 50m
@@ -39,6 +51,15 @@ server:
 
 controller:
   replicas: 2
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
   resources:
     requests:
       cpu: 100m
@@ -49,6 +70,15 @@ controller:
 
 repoServer:
   replicas: 2
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
   resources:
     requests:
       cpu: 50m
@@ -59,6 +89,15 @@ repoServer:
 
 applicationSet:
   replicas: 2
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
   resources:
     requests:
       cpu: 25m
@@ -73,7 +112,16 @@ redis:
 redis-ha:
   enabled: true
   replicas: 2
+
   redis:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+
     resources:
       requests:
         cpu: 25m
@@ -81,7 +129,16 @@ redis-ha:
       limits:
         cpu: 100m
         memory: 128Mi
+
   sentinel:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+
     resources:
       requests:
         cpu: 10m
@@ -89,7 +146,16 @@ redis-ha:
       limits:
         cpu: 50m
         memory: 64Mi
+
   haproxy:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+
     resources:
       requests:
         cpu: 10m
@@ -103,6 +169,15 @@ ha:
 
 dex:
   enabled: true
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
   resources:
     requests:
       cpu: 10m
