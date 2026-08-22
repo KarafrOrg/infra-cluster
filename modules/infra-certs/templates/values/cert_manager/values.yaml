@@ -1,4 +1,5 @@
 replicaCount: 2
+
 resources:
   requests:
     cpu: 25m
@@ -7,9 +8,8 @@ resources:
     cpu: 100m
     memory: 128Mi
 
-global:
-  nodeSelector:
-    node-role.kubernetes.io/control-plane: ""
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
 
 tolerations:
   - key: node-role.kubernetes.io/control-plane
@@ -18,6 +18,7 @@ tolerations:
 
 webhook:
   replicaCount: 2
+
   resources:
     requests:
       cpu: 10m
@@ -26,8 +27,17 @@ webhook:
       cpu: 50m
       memory: 64Mi
 
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
 cainjector:
   replicaCount: 2
+
   resources:
     requests:
       cpu: 10m
@@ -35,3 +45,11 @@ cainjector:
     limits:
       cpu: 100m
       memory: 128Mi
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
