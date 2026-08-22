@@ -7,7 +7,7 @@ metadata:
 spec:
   goTemplate: true
   syncPolicy:
-    applicationsSync: create-update
+    applicationsSync: sync
   generators:
     - matrix:
         generators:
