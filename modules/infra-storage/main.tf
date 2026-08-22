@@ -9,8 +9,8 @@ resource "kubectl_manifest" "namespace" {
   })
 }
 
-resource "helm_release" "external_secrets" {
-  chart      = "external-secrets"
+resource "helm_release" "longhorn" {
+  chart      = "longhorn"
   name       = var.longhorn.release_name
   repository = var.longhorn.release_repository
   values = [
