@@ -1,3 +1,17 @@
+resource "kubectl_manifest" "namespace" {
+  for_each = toset([
+    for ns in [
+        var.metrics_server.enabled ? var.metrics_server.release_namespace : null,
+        var.node_exporter.enabled ? var.node_exporter.release_namespace : null,
+        var.prometheus_operator_crds.enabled ? var.prometheus_operator_crds.release_namespace : null,
+        var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null
+    ] : ns if ns != null
+  ])
+  yaml_body = templatefile("${path.module}/templates/manifests/namespace.tftpl.yaml", {
+    infra_monitoring_namespace = each.value
+  })
+}
+
 resource "helm_release" "metrics_server" {
   count      = var.metrics_server.enabled ? 1 : 0
   chart      = "metrics-server"
@@ -9,7 +23,7 @@ resource "helm_release" "metrics_server" {
     })
   ]
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
@@ -17,28 +31,28 @@ resource "helm_release" "metrics_server" {
   namespace        = var.metrics_server.release_namespace
 }
 
-resource "helm_release" "prometheus_operator" {
-  chart      = "prometheus-operator"
-  name       = var.prometheus_operator.release_name
-  repository = var.prometheus_operator.release_repository
+resource "helm_release" "prometheus_operator_crds" {
+  chart      = "prometheus-operator-crds"
+  name       = var.prometheus_operator_crds.release_name
+  repository = var.prometheus_operator_crds.release_repository
   values = [
-    templatefile("${path.module}/templates/values/prometheus_operator/values.tftpl.yaml", {
-      prometheus_operator_helm_release_namespace = var.prometheus_operator.release_namespace
+    templatefile("${path.module}/templates/values/prometheus_operator_crds/values.tftpl.yaml", {
+      prometheus_operator_crds_helm_release_namespace = var.prometheus_operator_crds.release_namespace
     })
   ]
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
   atomic           = true
-  namespace        = var.prometheus_operator.release_namespace
-  count            = var.prometheus_operator.enabled ? 1 : 0
+  namespace        = var.prometheus_operator_crds.release_namespace
+  count            = var.prometheus_operator_crds.enabled ? 1 : 0
 }
 
 resource "helm_release" "node_exporter" {
   count      = var.node_exporter.enabled ? 1 : 0
-  chart      = "node-exporter"
+  chart      = "prometheus-node-exporter"
   name       = var.node_exporter.release_name
   repository = var.node_exporter.release_repository
   values = [
@@ -47,7 +61,7 @@ resource "helm_release" "node_exporter" {
     })
   ]
   upgrade_install  = true
-  create_namespace = true
+  create_namespace = false
   timeout          = 900
   wait             = true
   cleanup_on_fail  = true
@@ -55,6 +69,29 @@ resource "helm_release" "node_exporter" {
   namespace        = var.node_exporter.release_namespace
 
   depends_on = [
-    helm_release.prometheus_operator,
+    helm_release.prometheus_operator_crds,
+  ]
+}
+
+resource "helm_release" "kube_state_metrics" {
+  count      = var.kube_state_metrics.enabled ? 1 : 0
+  chart      = "kube-state-metrics"
+  name       = var.kube_state_metrics.release_name
+  repository = var.kube_state_metrics.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/kube_state_metrics/values.tftpl.yaml", {
+      kube_state_metrics_helm_release_namespace = var.kube_state_metrics.release_namespace
+    })
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.kube_state_metrics.release_namespace
+
+  depends_on = [
+    helm_release.prometheus_operator_crds,
   ]
 }

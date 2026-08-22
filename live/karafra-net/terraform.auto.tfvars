@@ -53,4 +53,6 @@ metrics_server = { enabled = true }
 
 node_exporter = { enabled = true }
 
-prometheus_operator = { enabled = true }
+prometheus_operator_crds = { enabled = true }
+
+kube_state_metrics = { enabled = true }
