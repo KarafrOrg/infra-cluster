@@ -7,6 +7,15 @@ resources:
     cpu: 100m
     memory: 128Mi
 
+global:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
 webhook:
   replicaCount: 2
   resources:
