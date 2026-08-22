@@ -1,5 +1,13 @@
 namespaceOverride: "${external_dns_helm_release_namespace}"
 
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
 provider:
   name: cloudflare
 
