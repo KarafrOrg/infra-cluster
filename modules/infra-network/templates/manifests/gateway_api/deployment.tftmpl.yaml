@@ -19,54 +19,72 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                - key: kubernetes.io/arch
-                  operator: In
-                  values: [amd64, arm64, ppc64le, s390x]
-                - key: kubernetes.io/os
-                  operator: In
-                  values: [linux]
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - arm64
+                      - ppc64le
+                      - s390x
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+
       containers:
-      - name: manager
-        image: 'ghcr.io/pl4nty/cloudflare-kubernetes-gateway:${gateway_api_version}'
-        command: [/ko-app/cmd]
-        args:
-          - --metrics-bind-address=:8080
-          - --leader-elect
-          - --health-probe-bind-address=:8081
-        env:
-        - name: GATEWAY_IMAGE
-          value: "docker.io/cloudflare/cloudflared:2026.6.0"
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        resources:
-          requests:
-            cpu: 10m
-            memory: 64Mi
-          limits:
-            cpu: 100m
-            memory: 128Mi
+        - name: manager
+          image: "ghcr.io/pl4nty/cloudflare-kubernetes-gateway:${gateway_api_version}"
+          command:
+            - /ko-app/cmd
+          args:
+            - --metrics-bind-address=:8080
+            - --leader-elect
+            - --health-probe-bind-address=:8081
+          env:
+            - name: GATEWAY_IMAGE
+              value: "docker.io/cloudflare/cloudflared:2026.6.0"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
       serviceAccountName: cloudflare-controller-manager
       terminationGracePeriodSeconds: 10
