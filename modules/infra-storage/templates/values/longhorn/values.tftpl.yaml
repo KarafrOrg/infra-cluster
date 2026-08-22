@@ -4,8 +4,6 @@ global:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
-  nodeSelector:
-    node-role.kubernetes.io/control-plane: ""
 preUpgradeChecker:
   jobEnabled: true
   upgradeVersionCheck: true
@@ -13,7 +11,7 @@ metrics:
   serviceMonitor:
     enabled: false
 longhornManager:
-  nodeSelector: { }
+  nodeSelector: {}
   resources:
     requests:
       cpu: 100m
@@ -24,6 +22,8 @@ longhornManager:
   log:
     format: json
 longhornDriver:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
   resources:
     requests:
       cpu: 50m
@@ -34,6 +34,8 @@ longhornDriver:
   log:
     format: json
 longhornUI:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
   resources:
     requests:
       cpu: 10m
