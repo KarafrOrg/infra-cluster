@@ -17,7 +17,7 @@ spec:
                 organization: ${argo_cd_github_org}
                 appSecretName: github-app-repo-creds
               filters:
-                - labelMatch: 'argocd'
+                - labelMatch: 'argocd-infra'
           - git:
               repoURL: 'https://github.com/KarafrOrg/{{ .repository }}'
               revision: 'HEAD'
