@@ -73,25 +73,6 @@ resource "helm_release" "external_dns" {
 }
 // endregion
 
-// region Gateway API
-data "kubectl_file_documents" "gateway_api_crds" {
-  content = file("${path.module}/templates/manifests/gateway_api/crds.yaml")
-}
-
-resource "kubectl_manifest" "gateway_api_crds" {
-  for_each = (var.gateway_api.enabled || var.cloudflared.enabled) ? {
-    for document in data.kubectl_file_documents.gateway_api_crds.documents :
-    "${yamldecode(document).apiVersion}/${yamldecode(document).kind}/${yamldecode(document).metadata.name}" => document
-  } : {}
-
-  yaml_body = each.value
-}
-
-moved {
-  from = kubectl_manifest.gateway_api_crds[0]
-  to   = kubectl_manifest.gateway_api_crds["apiextensions.k8s.io/v1/CustomResourceDefinition/backendtlspolicies.gateway.networking.k8s.io"]
-}
-
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
   count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/namespace.tftmpl.yaml", {
@@ -185,7 +166,6 @@ resource "kubectl_manifest" "cloudflare_gateway_controller" {
     kubectl_manifest.cloudflare_gateway_service_account,
     kubectl_manifest.cloudflare_gateway_cluster_role_binding,
     kubectl_manifest.cloudflare_gateway_leader_election_role_binding,
-    kubectl_manifest.gateway_api_crds,
   ]
 }
 
