@@ -102,5 +102,6 @@ module "infra_storage" {
   source = "../infra-storage"
   // region Storage-related Helm release configurations
   longhorn = var.longhorn
+  eck      = var.eck
   // endregion
 }

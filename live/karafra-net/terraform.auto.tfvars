@@ -58,3 +58,5 @@ prometheus_operator_crds = { enabled = true }
 kube_state_metrics = { enabled = true }
 
 longhorn = { enabled = true }
+
+eck = { enabled = true }

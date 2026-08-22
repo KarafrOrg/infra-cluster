@@ -1,0 +1,28 @@
+replicaCount: 3
+installCRDs: true
+serviceMonitor: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 150Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+managedNamespaces:
+  - infra-storage
+  - infra-monitoring
