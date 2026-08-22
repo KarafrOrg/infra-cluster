@@ -11,6 +11,7 @@ module "infra_cluster" {
   gateway_api                       = var.gateway_api
   cloudflared                       = var.cloudflared
   istio                             = var.istio
+  longhorn                          = var.longhorn
   k8s_cluster_client_certificate    = var.k8s_cluster_client_certificate
   k8s_cluster_certificate_authority = var.k8s_cluster_certificate_authority
 }

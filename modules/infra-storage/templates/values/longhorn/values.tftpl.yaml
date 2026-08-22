@@ -1,0 +1,47 @@
+longhorn:
+  namespaceOverride: ${infra_storage_namespace}
+  global:
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+  preUpgradeChecker:
+    jobEnabled: true
+    upgradeVersionCheck: true
+  metrics:
+    serviceMonitor:
+      enabled: false
+  longhornManager:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    log:
+      format: json
+  longhornDriver:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    log:
+      format: json
+  longhornUI:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 50m
+        memory: 64Mi
+    log:
+      format: json
+  defaultSettings:
+    deletingConfirmationFlag: true
