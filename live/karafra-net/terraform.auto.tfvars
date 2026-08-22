@@ -45,6 +45,6 @@ cloudflared = {
 }
 
 istio = {
-  enabled        = true
+  enabled        = false
   ingress_domain = "karafra.net"
 }
