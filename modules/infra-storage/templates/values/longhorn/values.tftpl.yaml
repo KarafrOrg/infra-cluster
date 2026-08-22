@@ -13,6 +13,7 @@ metrics:
   serviceMonitor:
     enabled: false
 longhornManager:
+  nodeSelector: { }
   resources:
     requests:
       cpu: 100m
