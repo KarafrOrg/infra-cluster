@@ -35,18 +35,18 @@ module "infra_argo" {
   source = "../infra-argo"
   count  = var.argocd.enabled ? 1 : 0
   // region ArgoCD Helm release configuration
-  argo_cd_helm_release_name                        = var.argocd.release_name
-  argo_cd_helm_release_namespace                   = var.argocd.release_namespace
-  argo_cd_helm_release_repository                  = var.argocd.release_repository
-  argocd_ingress_domain                            = var.argocd.ingress_domain
-  argocd_github_org                                = var.argocd.github_org
-  argocd_github_app_id_gcp_secret_id               = var.argocd.github_app_id_gcp_secret_id
-  argocd_github_app_installation_id_gcp_secret_id  = var.argocd.github_app_installation_id_gcp_secret_id
-  argocd_github_app_private_key_gcp_secret_id      = var.argocd.github_app_private_key_gcp_secret_id
-  argocd_github_sso_client_id_gcp_secret_id        = var.argocd.github_sso_client_id_gcp_secret_id
-  argocd_github_sso_client_secret_gcp_secret_id    = var.argocd.github_sso_client_secret_gcp_secret_id
-  argocd_github_sso_admin_team                     = var.argocd.github_sso_admin_team
-  cluster_issuer_name                              = var.cert_manager.cluster_issuer_name
+  argo_cd_helm_release_name                       = var.argocd.release_name
+  argo_cd_helm_release_namespace                  = var.argocd.release_namespace
+  argo_cd_helm_release_repository                 = var.argocd.release_repository
+  argocd_ingress_domain                           = var.argocd.ingress_domain
+  argocd_github_org                               = var.argocd.github_org
+  argocd_github_app_id_gcp_secret_id              = var.argocd.github_app_id_gcp_secret_id
+  argocd_github_app_installation_id_gcp_secret_id = var.argocd.github_app_installation_id_gcp_secret_id
+  argocd_github_app_private_key_gcp_secret_id     = var.argocd.github_app_private_key_gcp_secret_id
+  argocd_github_sso_client_id_gcp_secret_id       = var.argocd.github_sso_client_id_gcp_secret_id
+  argocd_github_sso_client_secret_gcp_secret_id   = var.argocd.github_sso_client_secret_gcp_secret_id
+  argocd_github_sso_admin_team                    = var.argocd.github_sso_admin_team
+  cluster_issuer_name                             = var.cert_manager.cluster_issuer_name
   // endregion
   depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
 }
@@ -84,6 +84,15 @@ module "infra_network" {
   gateway_api    = var.gateway_api
   cloudflared    = var.cloudflared
   istio          = var.istio
+  // endregion
+  depends_on = [module.infra_secrets]
+}
+
+module "infra_monitoring" {
+  source = "../infra-monitoring"
+  // region Monitoring-related Helm release configurations
+  gcp_project_id = var.external_secrets.gcp_project_id
+  metrics_server = var.metrics_server
   // endregion
   depends_on = [module.infra_secrets]
 }

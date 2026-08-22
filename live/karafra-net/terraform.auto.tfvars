@@ -48,3 +48,7 @@ istio = {
   enabled        = false
   ingress_domain = "karafra.net"
 }
+
+metrics_server = {
+  enabled = true
+}
