@@ -1,0 +1,52 @@
+namespaceOverride: infra-monitoring
+
+hostNetwork: true
+hostPID: true
+
+hostRootFsMount:
+  enabled: true
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+
+service:
+  enabled: true
+  type: ClusterIP
+
+prometheus:
+  monitor:
+    enabled: true
+    namespace: infra-monitoring
+    interval: 30s
+    scrapeTimeout: 10s
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+tolerations:
+  - operator: Exists
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+serviceMonitor:
+  enabled: true

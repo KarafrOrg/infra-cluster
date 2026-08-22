@@ -91,7 +91,9 @@ module "infra_network" {
 module "infra_monitoring" {
   source = "../infra-monitoring"
   // region Monitoring-related Helm release configurations
-  metrics_server = var.metrics_server
+  metrics_server      = var.metrics_server
+  prometheus_operator = var.prometheus_operator
+  node_exporter       = var.node_exporter
   // endregion
   depends_on = [module.infra_secrets]
 }

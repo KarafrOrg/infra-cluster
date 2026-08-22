@@ -49,6 +49,8 @@ istio = {
   ingress_domain = "karafra.net"
 }
 
-metrics_server = {
-  enabled = true
-}
+metrics_server = { enabled = true }
+
+node_exporter = { enabled = true }
+
+prometheus_operator = { enabled = true }
