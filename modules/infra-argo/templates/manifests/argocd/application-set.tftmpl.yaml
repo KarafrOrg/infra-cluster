@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: github-org-discovery
+  name: github-karafrorg-discovery
   namespace: ${argo_cd_helm_release_namespace}
 spec:
   goTemplate: true
@@ -17,7 +17,7 @@ spec:
                 organization: ${argo_cd_github_org}
                 appSecretName: github-app-repo-creds
               filters:
-                - labelMatch: 'argocd-infra'
+                - labelMatch: 'argocd'
           - git:
               repoURL: 'https://github.com/KarafrOrg/{{ .repository }}'
               revision: 'HEAD'
