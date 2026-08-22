@@ -91,7 +91,6 @@ module "infra_network" {
 module "infra_monitoring" {
   source = "../infra-monitoring"
   // region Monitoring-related Helm release configurations
-  gcp_project_id = var.external_secrets.gcp_project_id
   metrics_server = var.metrics_server
   // endregion
   depends_on = [module.infra_secrets]
