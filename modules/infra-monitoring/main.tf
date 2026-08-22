@@ -1,10 +1,10 @@
 resource "kubectl_manifest" "namespace" {
   for_each = toset([
     for ns in [
-        var.metrics_server.enabled ? var.metrics_server.release_namespace : null,
-        var.node_exporter.enabled ? var.node_exporter.release_namespace : null,
-        var.prometheus_operator_crds.enabled ? var.prometheus_operator_crds.release_namespace : null,
-        var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null
+      var.metrics_server.enabled ? var.metrics_server.release_namespace : null,
+      var.node_exporter.enabled ? var.node_exporter.release_namespace : null,
+      var.prometheus_operator_crds.enabled ? var.prometheus_operator_crds.release_namespace : null,
+      var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null
     ] : ns if ns != null
   ])
   yaml_body = templatefile("${path.module}/templates/manifests/namespace.tftpl.yaml", {
@@ -94,4 +94,23 @@ resource "helm_release" "kube_state_metrics" {
   depends_on = [
     helm_release.prometheus_operator_crds,
   ]
+}
+
+resource "helm_release" "eck_monitoring" {
+  count      = var.eck_monitoring.enabled ? 1 : 0
+  chart      = "eck-stack"
+  name       = var.eck_monitoring.release_name
+  repository = var.eck_monitoring.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/eck_stack/values.tftpl.yaml", {
+      eck_monitoring_helm_release_namespace = var.eck_monitoring.release_namespace
+    }),
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.eck_monitoring.release_namespace
 }

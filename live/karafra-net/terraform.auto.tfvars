@@ -60,3 +60,5 @@ kube_state_metrics = { enabled = true }
 longhorn = { enabled = true }
 
 eck = { enabled = true }
+
+eck_monitoring = { enabled = true }

@@ -1,2 +1,246 @@
-crds:
+eck-elasticsearch:
   enabled: true
+  fullnameOverride: monitoring-elasticsearch
+  version: 9.4.0
+  volumeClaimDeletePolicy: DeleteOnScaledownOnly
+  updateStrategy:
+    changeBudget:
+      maxUnavailable: 1
+  podDisruptionBudget:
+    spec:
+      minAvailable: 2
+  nodeSets:
+    - name: default
+      count: 3
+      config:
+        node.roles: [ "master", "data_content", "data_hot", "data_warm", "data_cold", "ingest", "transform" ]
+        node.store.allow_mmap: false
+        xpack.ml.enabled: false
+        action.auto_create_index: true
+      podTemplate:
+        spec:
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: ""
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        elasticsearch.k8s.elastic.co/cluster-name: monitoring-elasticsearch
+                    topologyKey: kubernetes.io/hostname
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  elasticsearch.k8s.elastic.co/cluster-name: monitoring-elasticsearch
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  cpu: 1000m
+                  memory: 4Gi
+                limits:
+                  cpu: 2000m
+                  memory: 4Gi
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: longhorn
+            resources:
+              requests:
+                storage: 50Gi
+
+eck-kibana:
+  enabled: true
+  fullnameOverride: monitoring-kibana
+  version: 9.4.0
+  count: 2
+  elasticsearchRef:
+    name: monitoring-elasticsearch
+  config:
+    server.publicBaseUrl: https://kibana.kubernetes.karafra.net
+    telemetry.enabled: false
+    xpack.fleet.enabled: false
+    xpack.apm.ui.enabled: true
+    elasticsearch.requestTimeout: 120000
+    elasticsearch.shardTimeout: 120000
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  podTemplate:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: kibana
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 5601
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 30
+            failureThreshold: 20
+            successThreshold: 1
+
+eck-apm-server:
+  enabled: true
+  fullnameOverride: monitoring-apm
+  version: 9.4.0
+  count: 2
+  elasticsearchRef:
+    name: monitoring-elasticsearch
+  kibanaRef:
+    name: monitoring-kibana
+  config:
+    apm-server:
+      host: 0.0.0.0:8200
+      data_streams:
+        enabled: true
+    queue.mem:
+      events: 4096
+    output.elasticsearch:
+      bulk_max_size: 2048
+  http:
+    service:
+      spec:
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 8200
+            targetPort: 8200
+  podTemplate:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+
+eck-agent:
+  enabled: false
+
+eck-fleet-server:
+  enabled: false
+
+eck-beats:
+  enabled: true
+  fullnameOverride: monitoring-filebeat
+  version: 9.4.0
+  type: filebeat
+  elasticsearchRef:
+    name: monitoring-elasticsearch
+  kibanaRef:
+    name: monitoring-kibana
+  serviceAccount:
+    name: monitoring-filebeat
+  clusterRole:
+    name: monitoring-filebeat
+    rules:
+      - apiGroups: [ "" ]
+        resources: [ "pods", "namespaces", "nodes" ]
+        verbs: [ "get", "list", "watch" ]
+  clusterRoleBinding:
+    name: monitoring-filebeat
+    subjects:
+      - kind: ServiceAccount
+        name: monitoring-filebeat
+    roleRef:
+      kind: ClusterRole
+      name: monitoring-filebeat
+      apiGroup: rbac.authorization.k8s.io
+  daemonSet:
+    podTemplate:
+      spec:
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
+        tolerations:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+        serviceAccountName: monitoring-filebeat
+        automountServiceAccountToken: true
+        terminationGracePeriodSeconds: 30
+        containers:
+          - name: filebeat
+            securityContext:
+              runAsUser: 0
+            resources:
+              requests:
+                cpu: 100m
+                memory: 200Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+            volumeMounts:
+              - name: varlogcontainers
+                mountPath: /var/log/containers
+                readOnly: true
+              - name: varlogpods
+                mountPath: /var/log/pods
+                readOnly: true
+        volumes:
+          - name: varlogcontainers
+            hostPath:
+              path: /var/log/containers
+          - name: varlogpods
+            hostPath:
+              path: /var/log/pods
+  config:
+    filebeat.inputs:
+      - type: filestream
+        id: kubernetes-pod-logs
+        paths:
+          - /var/log/containers/*.log
+        parsers:
+          - container: ~
+        prospector:
+          scanner:
+            fingerprint.enabled: true
+            symlinks: true
+        file_identity.fingerprint: ~
+    processors:
+      - add_host_metadata: { }
+      - add_cloud_metadata: { }
+      - add_kubernetes_metadata:
+          host: \$${NODE_NAME}
+          matchers:
+            - logs_path:
+                logs_path: /var/log/containers/
+    logging.metrics.enabled: false
+
+eck-logstash:
+  enabled: false
+
+eck-enterprise-search:
+  enabled: false
+
+eck-autoops-agent-policy:
+  enabled: false
+
+eck-package-registry:
+  enabled: false
