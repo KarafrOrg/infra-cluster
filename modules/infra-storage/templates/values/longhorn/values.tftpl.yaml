@@ -53,7 +53,8 @@ longhornUI:
   log:
     format: json
 persistence:
-  shareManagerTolerations: true
+  shareManagerTolerations:
+    enable: true
 defaultSettings:
   deletingConfirmationFlag: true
   taintToleration: "node-role.kubernetes.io/control-plane:NoSchedule"
