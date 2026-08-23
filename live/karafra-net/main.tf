@@ -12,6 +12,13 @@ module "infra_cluster" {
   cloudflared                       = var.cloudflared
   istio                             = var.istio
   longhorn                          = var.longhorn
+  alloy                             = var.alloy
+  eck                               = var.eck
+  eck_monitoring                    = var.eck_monitoring
+  metrics_server                    = var.metrics_server
+  node_exporter                     = var.node_exporter
+  prometheus_operator_crds          = var.prometheus_operator_crds
+  kube_state_metrics                = var.kube_state_metrics
   k8s_cluster_client_certificate    = var.k8s_cluster_client_certificate
   k8s_cluster_certificate_authority = var.k8s_cluster_certificate_authority
 }
