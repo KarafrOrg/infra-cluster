@@ -8,38 +8,46 @@ alloy:
         level  = "info"
         format = "logfmt"
       }
-      
+
       prometheus.operator.servicemonitors "kubernetes" {
         forward_to = [
-          otelcol.processor.k8sattributes.telemetry.input,
+          otelcol.receiver.prometheus.kubernetes.receiver,
         ]
       }
-      
-      otelcol.receiver.otlp "applications" {
-        grpc {
-          endpoint = "0.0.0.0:4317"
-        }
-      
-        http {
-          endpoint = "0.0.0.0:4318"
-        }
-      
+
+      otelcol.receiver.prometheus "kubernetes" {
         output {
           metrics = [
             otelcol.processor.k8sattributes.telemetry.input,
           ]
-      
+        }
+      }
+
+      otelcol.receiver.otlp "applications" {
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+
+        http {
+          endpoint = "0.0.0.0:4318"
+        }
+
+        output {
+          metrics = [
+            otelcol.processor.k8sattributes.telemetry.input,
+          ]
+
           logs = [
             otelcol.processor.k8sattributes.telemetry.input,
           ]
-      
+
           traces = [
             otelcol.connector.spanmetrics.default.input,
             otelcol.processor.k8sattributes.telemetry.input,
           ]
         }
       }
-      
+
       otelcol.processor.k8sattributes "telemetry" {
         extract {
           metadata = [
@@ -55,32 +63,32 @@ alloy:
             "k8s.container.name",
           ]
         }
-      
+
         output {
           metrics = [
             otelcol.processor.batch.metrics.input,
           ]
-      
+
           logs = [
             otelcol.processor.batch.logs.input,
           ]
-      
+
           traces = [
             otelcol.processor.batch.traces.input,
           ]
         }
       }
-      
+
       otelcol.connector.spanmetrics "default" {
         namespace = "traces.span.metrics"
-      
+
         metrics_flush_interval = "15s"
-      
+
         aggregation_cardinality_limit = 10000
-      
+
         histogram {
           unit = "ms"
-      
+
           explicit {
             buckets = [
               "2ms",
@@ -101,142 +109,137 @@ alloy:
             ]
           }
         }
-      
+
         dimension {
           name = "http.request.method"
         }
-      
+
         dimension {
           name = "http.route"
         }
-      
+
         dimension {
           name = "http.response.status_code"
         }
-      
+
         dimension {
           name = "k8s.namespace.name"
         }
-      
+
         dimension {
           name = "deployment.environment.name"
         }
-      
+
         exemplars {
           enabled = true
           max_per_data_point = 5
         }
-      
+
         output {
           metrics = [
             otelcol.processor.k8sattributes.telemetry.input,
           ]
         }
       }
-      
+
       otelcol.processor.batch "metrics" {
         timeout = "2s"
         send_batch_size = 1000
-      
+
         output {
           metrics = [
             otelcol.exporter.otlphttp.elasticsearch.input,
           ]
         }
       }
-      
+
       otelcol.processor.batch "logs" {
         timeout = "2s"
         send_batch_size = 1000
-      
+
         output {
           logs = [
             otelcol.exporter.otlphttp.elasticsearch.input,
           ]
         }
       }
-      
+
       otelcol.processor.batch "traces" {
         timeout = "2s"
         send_batch_size = 1000
-      
+
         output {
           traces = [
             otelcol.exporter.otlphttp.elasticsearch.input,
           ]
         }
       }
-      
+
+      otelcol.auth.basic "elasticsearch" {
+        username = sys.env("ES_USERNAME")
+        password = sys.env("ES_PASSWORD")
+      }
+
       otelcol.exporter.otlphttp "elasticsearch" {
         client {
-          endpoint = "https://monitoring-elasticsearch:9200/_otlp"
-      
-          headers = {
-            Authorization = "ApiKey \$${ES_API_KEY}"
-          }
-      
+          endpoint = "https://monitoring-elasticsearch-es-http:9200/_otlp"
+
+          auth = otelcol.auth.basic.elasticsearch.handler
+
           compression = "gzip"
-      
           timeout = "30s"
-      
+
           tls {
             ca_file = "/etc/alloy/certs/ca.crt"
           }
         }
-      
+
         sending_queue {
           enabled = true
-      
           queue_size = 10000
-      
-          storage = otelcol.storage.file_system.elasticsearch
         }
-      
+
         retry_on_failure {
           enabled = true
         }
       }
-      
-      otelcol.storage.file_system "elasticsearch" {
-        directory = "/var/lib/alloy/storage"
-      }
-      
+
       discovery.kubernetes "pods" {
         role = "pod"
       }
-      
+
       discovery.relabel "pod_logs" {
         targets = discovery.kubernetes.pods.targets
-      
+
         rule {
           source_labels = ["__meta_kubernetes_pod_node_name"]
           target_label  = "node_name"
         }
-      
+
         rule {
           source_labels = ["__meta_kubernetes_namespace"]
           target_label  = "namespace"
         }
-      
+
         rule {
           source_labels = ["__meta_kubernetes_pod_name"]
           target_label  = "pod"
         }
-      
+
         rule {
           source_labels = ["__meta_kubernetes_pod_container_name"]
           target_label  = "container"
         }
       }
-      
+
       loki.source.kubernetes "pods" {
         targets = discovery.relabel.pod_logs.output
-      
+
         forward_to = [
           otelcol.receiver.loki.pods.receiver,
         ]
       }
-      
+
       otelcol.receiver.loki "pods" {
         output {
           logs = [
@@ -246,22 +249,24 @@ alloy:
       }
 
   extraEnv:
-    - name: ES_API_KEY
+    - name: ES_USERNAME
+      value: "elastic"
+
+    - name: ES_PASSWORD
       valueFrom:
         secretKeyRef:
-          name: monitoring-elasticsearch-otel
-          key: api-key
+          name: monitoring-elasticsearch-es-elastic-user
+          key: elastic
 
   storagePath: /var/lib/alloy
 
-  mounts:
-    extra:
-      - name: alloy-storage
-        mountPath: /var/lib/alloy
-
-      - name: elasticsearch-ca
-        mountPath: /etc/alloy/certs
-        readOnly: true
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
 
   volumes:
     extra:
@@ -272,44 +277,36 @@ alloy:
         secret:
           secretName: monitoring-elasticsearch-es-http-ca-internal
 
-  resources:
-    requests:
-      cpu: 500m
-      memory: 1Gi
-    limits:
-      cpu: 2
-      memory: 4Gi
+  volumeMounts:
+    extra:
+      - name: elasticsearch-ca
+        mountPath: /etc/alloy/certs
+        readOnly: true
 
-  controller:
-    type: Deployment
-    replicas: 3
+controller:
+  type: statefulset
+  replicas: 3
 
-    nodeSelector:
-      node-role.kubernetes.io/control-plane: ""
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
 
-    tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
 
-    affinity:
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: alloy
-            topologyKey: kubernetes.io/hostname
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: alloy
+          topologyKey: kubernetes.io/hostname
 
-    topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app.kubernetes.io/name: alloy
-
-  service:
-    enabled: true
-    type: ClusterIP
-
-  rbac:
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: alloy
