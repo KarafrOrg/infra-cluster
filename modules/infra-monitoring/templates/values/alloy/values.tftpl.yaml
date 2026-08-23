@@ -81,9 +81,7 @@ alloy:
 
       otelcol.connector.spanmetrics "default" {
         namespace = "traces.span.metrics"
-
         metrics_flush_interval = "15s"
-
         aggregation_cardinality_limit = 10000
 
         histogram {
@@ -182,7 +180,7 @@ alloy:
 
       otelcol.exporter.otlphttp "elasticsearch" {
         client {
-          endpoint = "https://monitoring-elasticsearch-es-http:9200/_otlp"
+          endpoint = "https://monitoring-elasticsearch-es-http:9200"
 
           auth = otelcol.auth.basic.elasticsearch.handler
 
@@ -268,6 +266,12 @@ alloy:
       cpu: 2
       memory: 4Gi
 
+  mounts:
+    extra:
+      - name: elasticsearch-ca
+        mountPath: /etc/alloy/certs
+        readOnly: true
+
 controller:
   type: statefulset
   replicas: 3
@@ -288,15 +292,6 @@ controller:
       - name: elasticsearch-ca
         secret:
           secretName: monitoring-elasticsearch-es-http-ca-internal
-
-  volumeMounts:
-    extra:
-      - name: alloy-storage
-        mountPath: /var/lib/alloy
-
-      - name: elasticsearch-ca
-        mountPath: /etc/alloy/certs
-        readOnly: true
 
   affinity:
     podAntiAffinity:
