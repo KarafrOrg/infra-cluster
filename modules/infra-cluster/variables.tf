@@ -213,7 +213,7 @@ variable "alloy" {
         enabled            = optional(bool, true)
         release_name       = optional(string, "alloy")
         release_namespace  = optional(string, "infra-monitoring")
-        release_repository = optional(string, "https://example.com/helm-charts")
+        release_repository = optional(string, "https://grafana.github.io/helm-charts")
     })
     default = {}
 }
