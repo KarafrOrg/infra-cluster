@@ -52,3 +52,15 @@ variable "eck_monitoring" {
   })
   default = {}
 }
+
+
+variable "alloy" {
+  description = "Alloy Helm release configuration."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "alloy")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://example.com/helm-charts")
+  })
+  default = {}
+}

@@ -62,3 +62,5 @@ longhorn = { enabled = true }
 eck = { enabled = true }
 
 eck_monitoring = { enabled = true }
+
+alloy = { enabled = true }

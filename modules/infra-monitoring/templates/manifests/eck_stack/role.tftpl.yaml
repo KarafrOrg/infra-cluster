@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monitoring-elasticsearch-otel-role
+  namespace: ${alloy_helm_release_namespace}
+type: Opaque
+stringData:
+  roles.yml: |
+    alloy:
+      cluster:
+        - monitor
+      indices:
+        - names:
+            - "traces-*"
+            - "logs-*"
+            - "metrics-*"
+          privileges:
+            - auto_configure
+            - create_doc

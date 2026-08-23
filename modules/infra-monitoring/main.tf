@@ -4,7 +4,9 @@ resource "kubectl_manifest" "namespace" {
       var.metrics_server.enabled ? var.metrics_server.release_namespace : null,
       var.node_exporter.enabled ? var.node_exporter.release_namespace : null,
       var.prometheus_operator_crds.enabled ? var.prometheus_operator_crds.release_namespace : null,
-      var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null
+      var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null,
+      var.eck_monitoring.enabled ? var.eck_monitoring.release_namespace : null,
+      var.alloy.enabled ? var.alloy.release_namespace : null,
     ] : ns if ns != null
   ])
   yaml_body = templatefile("${path.module}/templates/manifests/namespace.tftpl.yaml", {
@@ -113,4 +115,41 @@ resource "helm_release" "eck_monitoring" {
   cleanup_on_fail  = true
   atomic           = true
   namespace        = var.eck_monitoring.release_namespace
+}
+
+resource "kubectl_manifest" "eck_monitoring_user_role" {
+  yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/role.tftpl.yaml", {
+    infra_monitoring_namespace = var.eck_monitoring.release_namespace
+  })
+  depends_on = [helm_release.eck_monitoring]
+}
+
+resource "kubectl_manifest" "eck_monitoring_otel_user" {
+  yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/user.tftpl.yaml", {
+    alloy_helm_release_namespace = var.eck_monitoring.release_namespace
+  })
+  depends_on = [kubectl_manifest.eck_monitoring_otel_user]
+}
+
+resource "helm_release" "alloy" {
+  chart      = "alloy"
+  name       = var.alloy.release_name
+  repository = var.alloy.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/alloy/values.tftpl.yaml", {
+      alloy_helm_release_namespace = var.alloy.release_namespace
+    }),
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.alloy.release_namespace
+
+  depends_on = [
+    helm_release.eck_monitoring,
+    kubectl_manifest.eck_monitoring_otel_user
+  ]
 }
