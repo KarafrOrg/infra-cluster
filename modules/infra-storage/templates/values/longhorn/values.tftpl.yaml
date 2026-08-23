@@ -56,3 +56,4 @@ persistence:
   shareManagerTolerations: true
 defaultSettings:
   deletingConfirmationFlag: true
+  taintToleration: "node-role.kubernetes.io/control-plane:NoSchedule"
