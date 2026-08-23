@@ -119,7 +119,7 @@ resource "helm_release" "eck_monitoring" {
 
 resource "kubectl_manifest" "eck_monitoring_user_role" {
   yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/role.tftpl.yaml", {
-    infra_monitoring_namespace = var.eck_monitoring.release_namespace
+    alloy_helm_release_namespace = var.eck_monitoring.release_namespace
   })
   depends_on = [helm_release.eck_monitoring]
 }
