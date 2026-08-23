@@ -5,7 +5,7 @@ alloy:
   configMap:
     content: |
       logging {
-        level  = "debug"
+        level  = "info"
         format = "logfmt"
       }
 
@@ -180,7 +180,7 @@ alloy:
 
       otelcol.exporter.otlphttp "elasticsearch" {
         client {
-          endpoint = "https://monitoring-elasticsearch-es-http:9200"
+          endpoint = "https://monitoring-apm-apm-http:9200"
 
           auth = otelcol.auth.basic.elasticsearch.handler
 
