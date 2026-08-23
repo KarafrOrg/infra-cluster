@@ -126,7 +126,7 @@ resource "kubectl_manifest" "eck_monitoring_user_role" {
 
 resource "kubectl_manifest" "eck_monitoring_otel_user" {
   yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/user.tftpl.yaml", {
-    alloy_helm_release_namespace = var.eck_monitoring.release_namespace
+    alloy_helm_release_namespace = var.alloy.release_namespace
   })
   depends_on = [kubectl_manifest.eck_monitoring_otel_user]
 }
