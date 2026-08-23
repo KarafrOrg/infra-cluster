@@ -1,9 +1,4 @@
 namespaceOverride: ${infra_storage_namespace}
-global:
-  tolerations:
-    - key: node-role.kubernetes.io/control-plane
-      operator: Exists
-      effect: NoSchedule
 preUpgradeChecker:
   jobEnabled: true
   upgradeVersionCheck: true
@@ -11,7 +6,11 @@ metrics:
   serviceMonitor:
     enabled: false
 longhornManager:
-  nodeSelector: {}
+  nodeSelector: { }
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
   resources:
     requests:
       cpu: 100m
@@ -24,6 +23,10 @@ longhornManager:
 longhornDriver:
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
   resources:
     requests:
       cpu: 50m
@@ -36,6 +39,10 @@ longhornDriver:
 longhornUI:
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
   resources:
     requests:
       cpu: 10m
@@ -45,5 +52,7 @@ longhornUI:
       memory: 64Mi
   log:
     format: json
+persistence:
+  shareManagerTolerations: true
 defaultSettings:
   deletingConfirmationFlag: true
