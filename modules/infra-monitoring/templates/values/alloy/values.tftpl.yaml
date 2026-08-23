@@ -180,7 +180,7 @@ alloy:
 
       otelcol.exporter.otlphttp "elasticsearch" {
         client {
-          endpoint = "https://monitoring-apm-apm-http:9200"
+          endpoint = "https://monitoring-apm-apm-http:8200"
 
           auth = otelcol.auth.basic.elasticsearch.handler
 
@@ -291,7 +291,7 @@ controller:
 
       - name: elasticsearch-ca
         secret:
-          secretName: monitoring-filebeat-beat-es-ca
+          secretName: monitoring-apm-apm-es-ca
 
   affinity:
     podAntiAffinity:
