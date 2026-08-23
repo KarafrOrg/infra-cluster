@@ -172,7 +172,7 @@ alloy:
           endpoint = "https://monitoring-elasticsearch:9200/_otlp"
       
           headers = {
-            Authorization = "ApiKey ${ES_API_KEY}"
+            Authorization = "ApiKey \$${ES_API_KEY}"
           }
       
           compression = "gzip"
