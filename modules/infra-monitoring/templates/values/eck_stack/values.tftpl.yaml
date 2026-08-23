@@ -107,39 +107,7 @@ eck-kibana:
             successThreshold: 1
 
 eck-apm-server:
-  enabled: true
-  fullnameOverride: monitoring-apm
-  version: 9.4.0
-  count: 2
-  elasticsearchRef:
-    name: monitoring-elasticsearch
-  kibanaRef:
-    name: monitoring-kibana
-  config:
-    apm-server:
-      host: 0.0.0.0:8200
-      data_streams:
-        enabled: true
-    queue.mem:
-      events: 4096
-    output.elasticsearch:
-      bulk_max_size: 2048
-  http:
-    service:
-      spec:
-        type: ClusterIP
-        ports:
-          - name: http
-            port: 8200
-            targetPort: 8200
-  podTemplate:
-    spec:
-      nodeSelector:
-        node-role.kubernetes.io/control-plane: ""
-      tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
+  enabled: false
 
 eck-agent:
   enabled: false
