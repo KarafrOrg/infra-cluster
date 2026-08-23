@@ -266,7 +266,7 @@ alloy:
   volumes:
     extra:
       - name: alloy-storage
-        emptyDir: { }
+        emptyDir: {}
 
       - name: elasticsearch-ca
         secret:
@@ -276,60 +276,40 @@ alloy:
     requests:
       cpu: 500m
       memory: 1Gi
-
     limits:
-      cpu: 2000m
+      cpu: 2
       memory: 4Gi
 
-controller:
-  type: Deployment
+  controller:
+    type: Deployment
+    replicas: 3
 
-  replicas: 3
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
 
-  nodeSelector:
-    node-role.kubernetes.io/control-plane: ""
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
 
-  tolerations:
-    - key: node-role.kubernetes.io/control-plane
-      operator: Exists
-      effect: NoSchedule
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: alloy
+            topologyKey: kubernetes.io/hostname
 
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: alloy
-          topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: alloy
 
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: DoNotSchedule
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: alloy
+  service:
+    enabled: true
+    type: ClusterIP
 
-service:
-  enabled: true
-
-  type: ClusterIP
-
-  ports:
-    - name: otlp-grpc
-      port: 4317
-      targetPort: 4317
-      protocol: TCP
-
-    - name: otlp-http
-      port: 4318
-      targetPort: 4318
-      protocol: TCP
-
-    - name: http-metrics
-      port: 12345
-      targetPort: 12345
-      protocol: TCP
-
-rbac:
-  create: true
+  rbac:
