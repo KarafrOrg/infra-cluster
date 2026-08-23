@@ -182,11 +182,7 @@ alloy:
 
       otelcol.exporter.otlphttp "elasticsearch" {
         client {
-          endpoint = "https://monitoring-elasticsearch-es-http:9200"
-
-          metrics_endpoint = "https://monitoring-elasticsearch-es-http:9200/_otlp/v1/metrics"
-          logs_endpoint    = "https://monitoring-elasticsearch-es-http:9200/_otlp/v1/logs"
-          traces_endpoint  = "https://monitoring-elasticsearch-es-http:9200/_otlp/v1/traces"
+          endpoint = "https://monitoring-elasticsearch-es-http:9200/_otlp"
 
           auth = otelcol.auth.basic.elasticsearch.handler
 
