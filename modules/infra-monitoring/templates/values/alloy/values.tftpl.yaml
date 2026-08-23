@@ -291,7 +291,7 @@ controller:
 
       - name: elasticsearch-ca
         secret:
-          secretName: monitoring-elasticsearch-es-http-ca-internal
+          secretName: monitoring-elasticsearch-es-remote-ca
 
   affinity:
     podAntiAffinity:
