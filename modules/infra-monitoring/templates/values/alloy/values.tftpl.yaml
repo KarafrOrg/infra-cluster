@@ -272,21 +272,6 @@ alloy:
       cpu: 2
       memory: 4Gi
 
-  volumes:
-    extra:
-      - name: alloy-storage
-        emptyDir: {}
-
-      - name: elasticsearch-ca
-        secret:
-          secretName: monitoring-elasticsearch-es-http-ca-internal
-
-  volumeMounts:
-    extra:
-      - name: elasticsearch-ca
-        mountPath: /etc/alloy/certs
-        readOnly: true
-
 controller:
   type: statefulset
   replicas: 3
@@ -298,6 +283,24 @@ controller:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
+
+  volumes:
+    extra:
+      - name: alloy-storage
+        emptyDir: {}
+
+      - name: elasticsearch-ca
+        secret:
+          secretName: monitoring-elasticsearch-es-http-ca-internal
+
+  volumeMounts:
+    extra:
+      - name: alloy-storage
+        mountPath: /var/lib/alloy
+
+      - name: elasticsearch-ca
+        mountPath: /etc/alloy/certs
+        readOnly: true
 
   affinity:
     podAntiAffinity:
