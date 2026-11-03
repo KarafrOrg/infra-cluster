@@ -95,17 +95,18 @@ variable "external_dns" {
 variable "cloudflare_gateway_controller" {
   description = "Cloudflare Gateway Controller (matheuscscp/cloudflare-gateway-controller) configuration, running highly available tunnel replicas spread across zones and nodes."
   type = object({
-    enabled                      = optional(bool, true)
-    release_name                 = optional(string, "cloudflare-gateway-controller")
-    release_namespace            = optional(string, "infra-network")
-    chart_version                = optional(string, "0.16.0")
-    cluster_name                 = string
-    controller_replicas          = optional(number, 1)
-    gateway_class_name           = optional(string, "cloudflare-tunnel")
-    gateway_name                 = optional(string, "cloudflare-tunnel")
-    tunnel_replicas              = list(object({ name = string, zone = string }))
-    cloudflare_account_id_secret = string
-    cloudflare_api_token_secret  = string
+    enabled                         = optional(bool, true)
+    release_name                    = optional(string, "cloudflare-gateway-controller")
+    release_namespace               = optional(string, "infra-network")
+    chart_version                   = optional(string, "0.16.0")
+    cluster_name                    = string
+    controller_replicas             = optional(number, 1)
+    gateway_class_name              = optional(string, "cloudflare-tunnel")
+    gateway_name                    = optional(string, "cloudflare-tunnel")
+    credential_reference_namespaces = optional(list(string), [])
+    tunnel_replicas                 = list(object({ name = string, zone = string }))
+    cloudflare_account_id_secret    = string
+    cloudflare_api_token_secret     = string
   })
 
   validation {

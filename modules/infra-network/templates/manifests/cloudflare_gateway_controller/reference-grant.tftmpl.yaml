@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: cloudflare-gateway-controller-creds
+  namespace: ${namespace}
+spec:
+  from:
+%{ for from_namespace in from_namespaces ~}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      namespace: ${from_namespace}
+%{ endfor ~}
+  to:
+    - group: ""
+      kind: Secret
+      name: cloudflare-gateway-controller-creds
