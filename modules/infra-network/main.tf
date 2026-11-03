@@ -374,7 +374,7 @@ resource "kubectl_manifest" "cloudflare_gateway_controller_parameters" {
   count = var.cloudflare_gateway_controller.enabled ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/parameters.tftmpl.yaml", {
     namespace = var.cloudflare_gateway_controller.release_namespace
-    zones     = var.cloudflare_gateway_controller.tunnel_zones
+    replicas  = var.cloudflare_gateway_controller.tunnel_replicas
   })
   depends_on = [helm_release.cloudflare_gateway_controller]
 }

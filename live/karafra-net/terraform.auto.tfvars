@@ -39,9 +39,13 @@ gateway_api = {
 }
 
 cloudflare_gateway_controller = {
-  enabled                      = true
-  cluster_name                 = "karafra-net"
-  tunnel_zones                 = ["zone-a", "zone-b", "zone-c"] # TODO: set to the cluster's real topology.kubernetes.io/zone values
+  enabled      = true
+  cluster_name = "karafra-net"
+  tunnel_replicas = [
+    { name = "eu-central-vienna", zone = "VIE" },
+    { name = "eu-central-budapest", zone = "BUD" },
+    { name = "eu-central-prague", zone = "PRG" },
+  ]
   cloudflare_account_id_secret = "cloudflare-account-id"
   cloudflare_api_token_secret  = "cloudflare-api-token"
 }

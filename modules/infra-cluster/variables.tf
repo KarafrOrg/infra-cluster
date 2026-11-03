@@ -115,14 +115,14 @@ variable "cloudflare_gateway_controller" {
     controller_replicas          = optional(number, 1)
     gateway_class_name           = optional(string, "cloudflare-tunnel")
     gateway_name                 = optional(string, "cloudflare-tunnel")
-    tunnel_zones                 = list(string)
+    tunnel_replicas              = list(object({ name = string, zone = string }))
     cloudflare_account_id_secret = string
     cloudflare_api_token_secret  = string
   })
 
   validation {
-    condition     = length(distinct(var.cloudflare_gateway_controller.tunnel_zones)) >= 3
-    error_message = "tunnel_zones must contain at least 3 distinct zones for a highly available tunnel."
+    condition     = length(distinct([for r in var.cloudflare_gateway_controller.tunnel_replicas : r.zone])) >= 3
+    error_message = "tunnel_replicas must contain at least 3 distinct zones for a highly available tunnel."
   }
 }
 
