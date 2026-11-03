@@ -291,15 +291,6 @@ resource "kubectl_manifest" "cloudflare_gateway_controller_parameters" {
   depends_on = [helm_release.cloudflare_gateway_controller]
 }
 
-resource "kubectl_manifest" "cloudflare_gateway_controller_reference_grant" {
-  count = var.cloudflare_gateway_controller.enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/reference-grant.tftmpl.yaml", {
-    namespace       = var.cloudflare_gateway_controller.release_namespace
-    from_namespaces = var.cloudflare_gateway_controller.credential_reference_namespaces
-  })
-  depends_on = [helm_release.cloudflare_gateway_controller]
-}
-
 resource "kubectl_manifest" "cloudflare_gateway_controller_gateway" {
   count = var.cloudflare_gateway_controller.enabled ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/gateway.tftmpl.yaml", {

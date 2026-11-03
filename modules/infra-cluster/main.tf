@@ -48,6 +48,8 @@ module "infra_argo" {
   argocd_github_sso_admin_team                    = var.argocd.github_sso_admin_team
   gateway_class_name                              = var.cloudflare_gateway_controller.gateway_class_name
   gateway_tunnel_replicas                         = var.cloudflare_gateway_controller.tunnel_replicas
+  gateway_cloudflare_account_id_secret            = var.cloudflare_gateway_controller.cloudflare_account_id_secret
+  gateway_cloudflare_api_token_secret             = var.cloudflare_gateway_controller.cloudflare_api_token_secret
   cluster_issuer_name                             = var.cert_manager.cluster_issuer_name
   // endregion
   depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]

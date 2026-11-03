@@ -71,3 +71,13 @@ variable "gateway_tunnel_replicas" {
   description = "Tunnel replicas for the Argo CD Gateway."
   type        = list(object({ name = string, zone = string }))
 }
+
+variable "gateway_cloudflare_account_id_secret" {
+  description = "GCP Secret Manager secret ID holding the Cloudflare account ID for the Argo CD Gateway."
+  type        = string
+}
+
+variable "gateway_cloudflare_api_token_secret" {
+  description = "GCP Secret Manager secret ID holding the Cloudflare API token for the Argo CD Gateway."
+  type        = string
+}

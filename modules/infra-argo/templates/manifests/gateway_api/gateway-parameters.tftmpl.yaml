@@ -4,6 +4,8 @@ metadata:
   name: argocd
   namespace: ${argo_cd_helm_release_namespace}
 spec:
+  secretRef:
+    name: cloudflare-gateway-creds
   tunnel:
     patches:
       - op: add

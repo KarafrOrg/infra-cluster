@@ -33,9 +33,8 @@ external_dns = {
 }
 
 cloudflare_gateway_controller = {
-  enabled                         = true
-  cluster_name                    = "karafra-net"
-  credential_reference_namespaces = ["infra-cicd"]
+  enabled      = true
+  cluster_name = "karafra-net"
   tunnel_replicas = [
     { name = "eu-central-vienna-1", zone = "VIE" },
     { name = "eu-central-vienna-2", zone = "VIE" },
