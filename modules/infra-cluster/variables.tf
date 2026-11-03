@@ -122,7 +122,7 @@ variable "cloudflare_gateway_controller" {
 
   validation {
     condition     = length(distinct([for r in var.cloudflare_gateway_controller.tunnel_replicas : r.zone])) >= 3
-    error_message = "tunnel_replicas must contain at least 3 distinct zones for a highly available tunnel."
+    error_message = "tunnel_replicas must span at least 3 distinct zones for a highly available tunnel."
   }
 }
 

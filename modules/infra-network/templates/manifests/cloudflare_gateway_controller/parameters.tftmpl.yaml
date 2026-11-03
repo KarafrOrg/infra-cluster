@@ -25,5 +25,15 @@ spec:
     replicas:
 %{ for replica in replicas ~}
       - name: ${replica.name}
-        zone: ${replica.zone}
+        # Soft zone preference instead of the hard `zone` field, so pods still schedule on nodes without zone labels.
+        affinity:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                    - key: topology.kubernetes.io/zone
+                      operator: In
+                      values:
+                        - ${replica.zone}
 %{ endfor ~}
