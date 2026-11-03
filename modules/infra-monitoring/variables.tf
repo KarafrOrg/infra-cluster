@@ -64,3 +64,16 @@ variable "alloy" {
   })
   default = {}
 }
+
+
+variable "gateway_name" {
+  description = "Name of the shared Gateway the Kibana HTTPRoute attaches to."
+  type        = string
+  default     = "cloudflare-tunnel"
+}
+
+variable "gateway_namespace" {
+  description = "Namespace of the shared Gateway the Kibana HTTPRoute attaches to."
+  type        = string
+  default     = "infra-network"
+}

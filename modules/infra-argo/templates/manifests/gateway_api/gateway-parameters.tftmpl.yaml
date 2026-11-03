@@ -1,0 +1,39 @@
+apiVersion: cloudflare-gateway-controller.io/v1
+kind: CloudflareGatewayParameters
+metadata:
+  name: argocd
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  tunnel:
+    patches:
+      - op: add
+        path: /spec/template/spec/tolerations
+        value:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+      - op: add
+        path: /spec/template/spec/topologySpreadConstraints
+        value:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: cloudflared
+                app.kubernetes.io/instance: argocd
+    replicas:
+%{ for replica in replicas ~}
+      - name: ${replica.name}
+        # Soft zone preference instead of the hard `zone` field, so pods still schedule on nodes without zone labels.
+        affinity:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                    - key: topology.kubernetes.io/zone
+                      operator: In
+                      values:
+                        - ${replica.zone}
+%{ endfor ~}

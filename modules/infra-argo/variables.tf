@@ -61,14 +61,13 @@ variable "argocd_github_sso_admin_team" {
 }
 
 
-variable "gateway_name" {
-  description = "Name of the shared Gateway the Argo CD HTTPRoute attaches to."
+variable "gateway_class_name" {
+  description = "GatewayClass used by the dedicated Argo CD Gateway."
   type        = string
   default     = "cloudflare-tunnel"
 }
 
-variable "gateway_namespace" {
-  description = "Namespace of the shared Gateway the Argo CD HTTPRoute attaches to."
-  type        = string
-  default     = "infra-network"
+variable "gateway_tunnel_replicas" {
+  description = "Tunnel replicas for the Argo CD Gateway."
+  type        = list(object({ name = string, zone = string }))
 }

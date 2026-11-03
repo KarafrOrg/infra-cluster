@@ -117,6 +117,15 @@ resource "helm_release" "eck_monitoring" {
   namespace        = var.eck_monitoring.release_namespace
 }
 
+resource "kubectl_manifest" "kibana_httproute" {
+  yaml_body = templatefile("${path.module}/templates/manifests/kibana-httproute.tftpl.yaml", {
+    namespace         = var.eck_monitoring.release_namespace
+    gateway_name      = var.gateway_name
+    gateway_namespace = var.gateway_namespace
+  })
+  depends_on = [helm_release.eck_monitoring]
+}
+
 resource "kubectl_manifest" "eck_monitoring_user_role" {
   yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/role.tftpl.yaml", {
     alloy_helm_release_namespace = var.alloy.release_namespace

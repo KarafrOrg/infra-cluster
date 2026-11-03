@@ -46,8 +46,8 @@ module "infra_argo" {
   argocd_github_sso_client_id_gcp_secret_id       = var.argocd.github_sso_client_id_gcp_secret_id
   argocd_github_sso_client_secret_gcp_secret_id   = var.argocd.github_sso_client_secret_gcp_secret_id
   argocd_github_sso_admin_team                    = var.argocd.github_sso_admin_team
-  gateway_name                                    = var.cloudflare_gateway_controller.gateway_name
-  gateway_namespace                               = var.cloudflare_gateway_controller.release_namespace
+  gateway_class_name                              = var.cloudflare_gateway_controller.gateway_class_name
+  gateway_tunnel_replicas                         = var.cloudflare_gateway_controller.tunnel_replicas
   cluster_issuer_name                             = var.cert_manager.cluster_issuer_name
   // endregion
   depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
@@ -97,8 +97,10 @@ module "infra_monitoring" {
   node_exporter            = var.node_exporter
   eck_monitoring           = var.eck_monitoring
   alloy                    = var.alloy
+  gateway_name             = var.cloudflare_gateway_controller.gateway_name
+  gateway_namespace        = var.cloudflare_gateway_controller.release_namespace
   // endregion
-  depends_on = [module.infra_secrets]
+  depends_on = [module.infra_secrets, module.infra_network]
 }
 
 module "infra_storage" {

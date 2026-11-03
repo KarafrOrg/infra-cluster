@@ -28,14 +28,28 @@ resource "kubectl_manifest" "argocd_certificate" {
   depends_on = [helm_release.argo_cd]
 }
 
+resource "kubectl_manifest" "argocd_gateway_parameters" {
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gateway-parameters.tftmpl.yaml", {
+    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
+    replicas                       = var.gateway_tunnel_replicas,
+  })
+  depends_on = [helm_release.argo_cd]
+}
+
+resource "kubectl_manifest" "argocd_gateway" {
+  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gateway.tftmpl.yaml", {
+    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
+    gateway_class_name             = var.gateway_class_name,
+  })
+  depends_on = [kubectl_manifest.argocd_gateway_parameters]
+}
+
 resource "kubectl_manifest" "argocd_httproute" {
   yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/httproute.tftmpl.yaml", {
     argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
     argocd_ingress_domain          = var.argocd_ingress_domain,
-    gateway_name                   = var.gateway_name,
-    gateway_namespace              = var.gateway_namespace,
   })
-  depends_on = [helm_release.argo_cd]
+  depends_on = [kubectl_manifest.argocd_gateway]
 }
 
 resource "kubectl_manifest" "argocd_github_sso" {

@@ -5,8 +5,8 @@ metadata:
   namespace: ${argo_cd_helm_release_namespace}
 spec:
   parentRefs:
-    - name: ${gateway_name}
-      namespace: ${gateway_namespace}
+    - name: argocd
+      namespace: ${argo_cd_helm_release_namespace}
   hostnames:
     - "${argocd_ingress_domain}"
   rules:
