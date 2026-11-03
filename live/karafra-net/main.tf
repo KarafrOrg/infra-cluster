@@ -8,7 +8,6 @@ module "infra_cluster" {
   k8s_cluster_token                 = var.k8s_cluster_token
   metallb                           = var.metallb
   external_dns                      = var.external_dns
-  gateway_api                       = var.gateway_api
   cloudflare_gateway_controller     = var.cloudflare_gateway_controller
   istio                             = var.istio
   longhorn                          = var.longhorn

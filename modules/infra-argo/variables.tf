@@ -59,3 +59,16 @@ variable "argocd_github_sso_admin_team" {
   type        = string
   default     = "admin"
 }
+
+
+variable "gateway_name" {
+  description = "Name of the shared Gateway the Argo CD HTTPRoute attaches to."
+  type        = string
+  default     = "cloudflare-tunnel"
+}
+
+variable "gateway_namespace" {
+  description = "Namespace of the shared Gateway the Argo CD HTTPRoute attaches to."
+  type        = string
+  default     = "infra-network"
+}

@@ -92,18 +92,6 @@ variable "external_dns" {
   })
 }
 
-variable "gateway_api" {
-  description = "Cloudflare Kubernetes Gateway API controller (pl4nty/cloudflare-kubernetes-gateway) configuration."
-  type = object({
-    enabled                      = optional(bool, true)
-    version                      = optional(string, "v0.9.0")
-    gateway_api_crds_version     = optional(string, "1.6.1")
-    namespace                    = optional(string, "infra-network")
-    cloudflare_account_id_secret = string
-    cloudflare_api_token_secret  = string
-  })
-}
-
 variable "cloudflare_gateway_controller" {
   description = "Cloudflare Gateway Controller (matheuscscp/cloudflare-gateway-controller) configuration, running highly available tunnel replicas spread across zones and nodes."
   type = object({

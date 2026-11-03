@@ -32,12 +32,6 @@ external_dns = {
   cloudflare_api_token_secret = "cloudflare-api-token"
 }
 
-gateway_api = {
-  enabled                      = true
-  cloudflare_account_id_secret = "cloudflare-account-id"
-  cloudflare_api_token_secret  = "cloudflare-api-token"
-}
-
 cloudflare_gateway_controller = {
   enabled      = true
   cluster_name = "karafra-net"

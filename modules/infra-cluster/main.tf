@@ -46,6 +46,8 @@ module "infra_argo" {
   argocd_github_sso_client_id_gcp_secret_id       = var.argocd.github_sso_client_id_gcp_secret_id
   argocd_github_sso_client_secret_gcp_secret_id   = var.argocd.github_sso_client_secret_gcp_secret_id
   argocd_github_sso_admin_team                    = var.argocd.github_sso_admin_team
+  gateway_name                                    = var.cloudflare_gateway_controller.gateway_name
+  gateway_namespace                               = var.cloudflare_gateway_controller.release_namespace
   cluster_issuer_name                             = var.cert_manager.cluster_issuer_name
   // endregion
   depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
@@ -81,7 +83,6 @@ module "infra_network" {
   gcp_project_id                = var.external_secrets.gcp_project_id
   metallb                       = var.metallb
   external_dns                  = var.external_dns
-  gateway_api                   = var.gateway_api
   cloudflare_gateway_controller = var.cloudflare_gateway_controller
   istio                         = var.istio
   // endregion
