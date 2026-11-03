@@ -49,8 +49,9 @@ resource "kubectl_manifest" "argocd_gateway" {
   yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gateway.tftmpl.yaml", {
     argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
     gateway_class_name             = var.gateway_class_name,
+    argocd_ingress_domain          = var.argocd_ingress_domain,
   })
-  depends_on = [kubectl_manifest.argocd_gateway_parameters]
+  depends_on = [kubectl_manifest.argocd_gateway_parameters, kubectl_manifest.argocd_certificate]
 }
 
 resource "kubectl_manifest" "argocd_httproute" {
