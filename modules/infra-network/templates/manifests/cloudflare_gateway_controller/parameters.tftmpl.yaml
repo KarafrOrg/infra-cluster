@@ -5,7 +5,23 @@ metadata:
   namespace: ${namespace}
 spec:
   tunnel:
-    # One tunnel replica (separate Deployment) per zone, so replicas always land on different zones and nodes.
+    patches:
+      - op: add
+        path: /spec/template/spec/tolerations
+        value:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+      - op: add
+        path: /spec/template/spec/topologySpreadConstraints
+        value:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: cloudflared
+                app.kubernetes.io/instance: ${gateway_name}
     replicas:
 %{ for replica in replicas ~}
       - name: ${replica.name}
