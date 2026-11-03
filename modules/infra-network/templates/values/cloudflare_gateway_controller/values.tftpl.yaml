@@ -1,3 +1,7 @@
+# Gateway API resources are already installed in the cluster.
+api:
+  enabled: false
+
 config:
   clusterName: ${cluster_name}
 

@@ -349,6 +349,7 @@ resource "helm_release" "cloudflare_gateway_controller" {
       replicas     = var.cloudflare_gateway_controller.controller_replicas
     })
   ]
+  skip_crds       = true # Gateway API CRDs are already installed in the cluster
   upgrade_install = true
   timeout         = 900
   wait            = true
