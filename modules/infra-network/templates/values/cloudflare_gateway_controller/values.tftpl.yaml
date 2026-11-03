@@ -1,0 +1,4 @@
+config:
+  clusterName: ${cluster_name}
+
+replicas: ${replicas}

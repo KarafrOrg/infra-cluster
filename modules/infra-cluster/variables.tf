@@ -104,16 +104,26 @@ variable "gateway_api" {
   })
 }
 
-variable "cloudflared" {
-  description = "cloudflared DaemonSet configuration for routing Cloudflare tunnel traffic to LoadBalancer services."
+variable "cloudflare_gateway_controller" {
+  description = "Cloudflare Gateway Controller (matheuscscp/cloudflare-gateway-controller) configuration, running highly available tunnel replicas spread across zones and nodes."
   type = object({
-    enabled             = optional(bool, true)
-    namespace           = optional(string, "infra-network")
-    image               = optional(string, "docker.io/cloudflare/cloudflared:2026.6.0")
-    tunnel_name         = optional(string, "cloudflared")
-    tunnel_token_secret = string
-    account_id          = string
+    enabled                      = optional(bool, true)
+    release_name                 = optional(string, "cloudflare-gateway-controller")
+    release_namespace            = optional(string, "infra-network")
+    chart_version                = optional(string, "0.16.0")
+    cluster_name                 = string
+    controller_replicas          = optional(number, 1)
+    gateway_class_name           = optional(string, "cloudflare-tunnel")
+    gateway_name                 = optional(string, "cloudflare-tunnel")
+    tunnel_zones                 = list(string)
+    cloudflare_account_id_secret = string
+    cloudflare_api_token_secret  = string
   })
+
+  validation {
+    condition     = length(distinct(var.cloudflare_gateway_controller.tunnel_zones)) >= 3
+    error_message = "tunnel_zones must contain at least 3 distinct zones for a highly available tunnel."
+  }
 }
 
 variable "istio" {
@@ -208,12 +218,12 @@ variable "eck_monitoring" {
 }
 
 variable "alloy" {
-    description = "Alloy Helm release configuration."
-    type = object({
-        enabled            = optional(bool, true)
-        release_name       = optional(string, "alloy")
-        release_namespace  = optional(string, "infra-monitoring")
-        release_repository = optional(string, "https://grafana.github.io/helm-charts")
-    })
-    default = {}
+  description = "Alloy Helm release configuration."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "alloy")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
 }

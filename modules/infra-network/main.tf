@@ -74,7 +74,7 @@ resource "helm_release" "external_dns" {
 // endregion
 
 resource "kubectl_manifest" "cloudflare_gateway_namespace" {
-  count = (var.gateway_api.enabled || var.cloudflared.enabled) ? 1 : 0
+  count = (var.gateway_api.enabled || var.cloudflare_gateway_controller.enabled) ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/namespace.tftmpl.yaml", {
     infra_network_namespace = local.cloudflare_namespace
   })
@@ -82,7 +82,7 @@ resource "kubectl_manifest" "cloudflare_gateway_namespace" {
 
 resource "kubectl_manifest" "istio_namespace" {
   count = var.istio.enabled && (
-    !(var.gateway_api.enabled || var.cloudflared.enabled) ||
+    !(var.gateway_api.enabled || var.cloudflare_gateway_controller.enabled) ||
     var.istio.release_namespace != local.cloudflare_namespace
   ) ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/namespace.tftmpl.yaml", {
@@ -326,52 +326,68 @@ resource "kubectl_manifest" "istio_public_ingress_gateway" {
 
 // endregion
 
-// region cloudflared DaemonSet
-resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
-  count      = var.cloudflared.enabled ? 1 : 0
-  account_id = var.cloudflared.account_id
-  name       = var.cloudflared.tunnel_name
+// region Cloudflare Gateway Controller (matheuscscp/cloudflare-gateway-controller)
+resource "kubectl_manifest" "cloudflare_gateway_controller_external_secret" {
+  count = var.cloudflare_gateway_controller.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/external-secret.tftmpl.yaml", {
+    namespace                    = var.cloudflare_gateway_controller.release_namespace
+    cloudflare_account_id_secret = var.cloudflare_gateway_controller.cloudflare_account_id_secret
+    cloudflare_api_token_secret  = var.cloudflare_gateway_controller.cloudflare_api_token_secret
+  })
+  depends_on = [kubectl_manifest.cloudflare_gateway_namespace]
 }
 
-data "cloudflare_zero_trust_tunnel_cloudflared_token" "this" {
-  count      = var.cloudflared.enabled ? 1 : 0
-  account_id = var.cloudflared.account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.this[0].id
+resource "helm_release" "cloudflare_gateway_controller" {
+  count     = var.cloudflare_gateway_controller.enabled ? 1 : 0
+  chart     = "oci://ghcr.io/matheuscscp/charts/cloudflare-gateway-controller"
+  name      = var.cloudflare_gateway_controller.release_name
+  version   = var.cloudflare_gateway_controller.chart_version
+  namespace = var.cloudflare_gateway_controller.release_namespace
+  values = [
+    templatefile("${path.module}/templates/values/cloudflare_gateway_controller/values.tftpl.yaml", {
+      cluster_name = var.cloudflare_gateway_controller.cluster_name
+      replicas     = var.cloudflare_gateway_controller.controller_replicas
+    })
+  ]
+  upgrade_install = true
+  timeout         = 900
+  wait            = true
+  cleanup_on_fail = true
+  atomic          = true
+  depends_on      = [kubectl_manifest.cloudflare_gateway_namespace]
 }
 
-resource "google_secret_manager_secret" "cloudflared_tunnel_token" {
-  count     = var.cloudflared.enabled ? 1 : 0
-  project   = var.gcp_project_id
-  secret_id = var.cloudflared.tunnel_token_secret
-  replication {
-    auto {}
-  }
-}
-
-resource "google_secret_manager_secret_version" "cloudflared_tunnel_token" {
-  count       = var.cloudflared.enabled ? 1 : 0
-  secret      = google_secret_manager_secret.cloudflared_tunnel_token[0].id
-  secret_data = data.cloudflare_zero_trust_tunnel_cloudflared_token.this[0].token
-}
-
-resource "kubectl_manifest" "cloudflared_external_secret" {
-  count = var.cloudflared.enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/templates/manifests/cloudflared/external-secret.tftmpl.yaml", {
-    cloudflared_namespace          = var.cloudflared.namespace
-    cloudflare_tunnel_token_secret = var.cloudflared.tunnel_token_secret
+resource "kubectl_manifest" "cloudflare_gateway_controller_gatewayclass" {
+  count = var.cloudflare_gateway_controller.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/gatewayclass.tftmpl.yaml", {
+    namespace          = var.cloudflare_gateway_controller.release_namespace
+    gateway_class_name = var.cloudflare_gateway_controller.gateway_class_name
   })
   depends_on = [
-    kubectl_manifest.cloudflare_gateway_namespace,
-    google_secret_manager_secret_version.cloudflared_tunnel_token,
+    helm_release.cloudflare_gateway_controller,
+    kubectl_manifest.cloudflare_gateway_controller_external_secret,
   ]
 }
 
-resource "kubectl_manifest" "cloudflared_daemonset" {
-  count = var.cloudflared.enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/templates/manifests/cloudflared/daemonset.tftmpl.yaml", {
-    cloudflared_namespace = var.cloudflared.namespace
-    cloudflared_image     = var.cloudflared.image
+resource "kubectl_manifest" "cloudflare_gateway_controller_parameters" {
+  count = var.cloudflare_gateway_controller.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/parameters.tftmpl.yaml", {
+    namespace = var.cloudflare_gateway_controller.release_namespace
+    zones     = var.cloudflare_gateway_controller.tunnel_zones
   })
-  depends_on = [kubectl_manifest.cloudflared_external_secret]
+  depends_on = [helm_release.cloudflare_gateway_controller]
+}
+
+resource "kubectl_manifest" "cloudflare_gateway_controller_gateway" {
+  count = var.cloudflare_gateway_controller.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/gateway.tftmpl.yaml", {
+    namespace          = var.cloudflare_gateway_controller.release_namespace
+    gateway_name       = var.cloudflare_gateway_controller.gateway_name
+    gateway_class_name = var.cloudflare_gateway_controller.gateway_class_name
+  })
+  depends_on = [
+    kubectl_manifest.cloudflare_gateway_controller_gatewayclass,
+    kubectl_manifest.cloudflare_gateway_controller_parameters,
+  ]
 }
 // endregion

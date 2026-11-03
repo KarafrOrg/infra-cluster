@@ -1,0 +1,13 @@
+apiVersion: cloudflare-gateway-controller.io/v1
+kind: CloudflareGatewayParameters
+metadata:
+  name: cloudflare-tunnel
+  namespace: ${namespace}
+spec:
+  tunnel:
+    # One tunnel replica (separate Deployment) per zone, so replicas always land on different zones and nodes.
+    replicas:
+%{ for zone in zones ~}
+      - name: ${replace(lower(zone), "/[^a-z0-9-]/", "-")}
+        zone: ${zone}
+%{ endfor ~}

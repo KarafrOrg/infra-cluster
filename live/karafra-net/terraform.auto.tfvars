@@ -38,10 +38,12 @@ gateway_api = {
   cloudflare_api_token_secret  = "cloudflare-api-token"
 }
 
-cloudflared = {
-  enabled             = false
-  account_id          = "8a3ba4f6454120fd71c65e87612dd13c"
-  tunnel_token_secret = "cloudflared-tunnel-token"
+cloudflare_gateway_controller = {
+  enabled                      = true
+  cluster_name                 = "karafra-net"
+  tunnel_zones                 = ["zone-a", "zone-b", "zone-c"] # TODO: set to the cluster's real topology.kubernetes.io/zone values
+  cloudflare_account_id_secret = "cloudflare-account-id"
+  cloudflare_api_token_secret  = "cloudflare-api-token"
 }
 
 istio = {

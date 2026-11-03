@@ -9,7 +9,7 @@ module "infra_cluster" {
   metallb                           = var.metallb
   external_dns                      = var.external_dns
   gateway_api                       = var.gateway_api
-  cloudflared                       = var.cloudflared
+  cloudflare_gateway_controller     = var.cloudflare_gateway_controller
   istio                             = var.istio
   longhorn                          = var.longhorn
   alloy                             = var.alloy

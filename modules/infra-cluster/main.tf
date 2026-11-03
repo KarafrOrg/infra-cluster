@@ -78,12 +78,12 @@ module "infra_secrets" {
 module "infra_network" {
   source = "../infra-network"
   // region Network-related Helm release configurations
-  gcp_project_id = var.external_secrets.gcp_project_id
-  metallb        = var.metallb
-  external_dns   = var.external_dns
-  gateway_api    = var.gateway_api
-  cloudflared    = var.cloudflared
-  istio          = var.istio
+  gcp_project_id                = var.external_secrets.gcp_project_id
+  metallb                       = var.metallb
+  external_dns                  = var.external_dns
+  gateway_api                   = var.gateway_api
+  cloudflare_gateway_controller = var.cloudflare_gateway_controller
+  istio                         = var.istio
   // endregion
   depends_on = [module.infra_secrets]
 }
