@@ -99,6 +99,10 @@ module "infra_monitoring" {
   node_exporter            = var.node_exporter
   eck_monitoring           = var.eck_monitoring
   alloy                    = var.alloy
+  mimir                    = var.mimir
+  grafana                  = var.grafana
+  loki                     = var.loki
+  tempo                    = var.tempo
   gateway_name             = var.cloudflare_gateway_controller.gateway_name
   gateway_namespace        = var.cloudflare_gateway_controller.release_namespace
   // endregion

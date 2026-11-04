@@ -21,6 +21,13 @@ storage:
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
+  # The upstream quay.io/minio images are no longer pullable; use the pgsty/silo fork (bundles mc).
+  image:
+    repository: pgsty/silo
+    tag: RELEASE.2026-09-03T13-18-01Z
+  mcImage:
+    repository: pgsty/silo
+    tag: RELEASE.2026-09-03T13-18-01Z
   persistence:
     storageClass: longhorn
   enabled: true
