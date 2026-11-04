@@ -9,13 +9,6 @@ spec:
     - name: https
       protocol: HTTPS
       port: 443
-      hostname: ${argocd_ingress_domain}
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: argocd-server-tls
   infrastructure:
     parametersRef:
       group: cloudflare-gateway-controller.io

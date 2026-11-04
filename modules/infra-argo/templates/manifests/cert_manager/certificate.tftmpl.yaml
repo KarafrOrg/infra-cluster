@@ -6,7 +6,9 @@ metadata:
 spec:
   secretName: argocd-server-tls
   dnsNames:
-    - ${argocd_ingress_domain}
+%{ for host in certificate_hosts ~}
+    - "${host}"
+%{ endfor ~}
   issuerRef:
     name: ${cluster_issuer_name}
     kind: ClusterIssuer

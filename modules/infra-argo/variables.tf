@@ -8,6 +8,12 @@ variable "argo_cd_helm_release_repository" {
   type        = string
 }
 
+variable "argo_cd_helm_release_version" {
+  description = "The version of the Argo CD Helm chart."
+  type        = string
+  default     = "10.11.7"
+}
+
 variable "argo_cd_helm_release_namespace" {
   description = "The namespace in which to install the Argo CD Helm release."
   type        = string
@@ -60,6 +66,12 @@ variable "argocd_github_sso_admin_team" {
   default     = "admin"
 }
 
+
+variable "edge_certificate_hosts" {
+  description = "Hostnames on the cert-manager certificate. Wildcards cover a single subdomain level only."
+  type        = list(string)
+  default     = ["*.kubernetes.karafra.net"]
+}
 
 variable "gateway_class_name" {
   description = "GatewayClass used by the dedicated Argo CD Gateway."
