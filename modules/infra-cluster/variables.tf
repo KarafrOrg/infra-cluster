@@ -194,17 +194,6 @@ variable "eck" {
   default = {}
 }
 
-variable "eck_monitoring" {
-  description = "Elastic Cloud on Kubernetes (ECK) Helm release configuration."
-  type = object({
-    enabled            = optional(bool, true)
-    release_name       = optional(string, "eck-monitoring-stack")
-    release_namespace  = optional(string, "infra-monitoring")
-    release_repository = optional(string, "https://helm.elastic.co")
-  })
-  default = {}
-}
-
 variable "alloy" {
   description = "Alloy Helm release configuration."
   type = object({

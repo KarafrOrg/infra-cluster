@@ -5,7 +5,6 @@ resource "kubectl_manifest" "namespace" {
       var.node_exporter.enabled ? var.node_exporter.release_namespace : null,
       var.prometheus_operator_crds.enabled ? var.prometheus_operator_crds.release_namespace : null,
       var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null,
-      var.eck_monitoring.enabled ? var.eck_monitoring.release_namespace : null,
       var.alloy.enabled ? var.alloy.release_namespace : null,
       var.mimir.enabled ? var.mimir.release_namespace : null,
       var.grafana.enabled ? var.grafana.release_namespace : null,
@@ -102,48 +101,6 @@ resource "helm_release" "kube_state_metrics" {
   ]
 }
 
-resource "helm_release" "eck_monitoring" {
-  count      = var.eck_monitoring.enabled ? 1 : 0
-  chart      = "eck-stack"
-  name       = var.eck_monitoring.release_name
-  repository = var.eck_monitoring.release_repository
-  values = [
-    templatefile("${path.module}/templates/values/eck_stack/values.tftpl.yaml", {
-      eck_monitoring_helm_release_namespace = var.eck_monitoring.release_namespace
-    }),
-  ]
-  upgrade_install  = true
-  create_namespace = false
-  timeout          = 900
-  wait             = true
-  cleanup_on_fail  = true
-  atomic           = true
-  namespace        = var.eck_monitoring.release_namespace
-}
-
-resource "kubectl_manifest" "kibana_httproute" {
-  yaml_body = templatefile("${path.module}/templates/manifests/kibana-httproute.tftpl.yaml", {
-    namespace         = var.eck_monitoring.release_namespace
-    gateway_name      = var.gateway_name
-    gateway_namespace = var.gateway_namespace
-  })
-  depends_on = [helm_release.eck_monitoring]
-}
-
-resource "kubectl_manifest" "eck_monitoring_user_role" {
-  yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/role.tftpl.yaml", {
-    alloy_helm_release_namespace = var.alloy.release_namespace
-  })
-  depends_on = [helm_release.eck_monitoring]
-}
-
-resource "kubectl_manifest" "eck_monitoring_otel_user" {
-  yaml_body = templatefile("${path.module}/templates/manifests/eck_stack/user.tftpl.yaml", {
-    alloy_helm_release_namespace = var.alloy.release_namespace
-  })
-  depends_on = [kubectl_manifest.eck_monitoring_user_role]
-}
-
 resource "helm_release" "alloy" {
   chart      = "alloy"
   name       = var.alloy.release_name
@@ -168,11 +125,9 @@ resource "helm_release" "alloy" {
   namespace        = var.alloy.release_namespace
 
   depends_on = [
-    helm_release.eck_monitoring,
     helm_release.mimir,
     helm_release.loki,
-    helm_release.tempo,
-    kubectl_manifest.eck_monitoring_otel_user
+    helm_release.tempo
   ]
 }
 
@@ -189,10 +144,12 @@ resource "helm_release" "mimir" {
   upgrade_install  = true
   create_namespace = false
   timeout          = 900
-  wait             = true
-  cleanup_on_fail  = true
-  atomic           = true
-  namespace        = var.mimir.release_namespace
+  # Bucket-creating MinIO hooks only run after install, but pods need the buckets to become ready,
+  # so waiting for readiness (or atomic) would deadlock until timeout.
+  wait            = false
+  cleanup_on_fail = true
+  atomic          = false
+  namespace       = var.mimir.release_namespace
 
   depends_on = [kubectl_manifest.namespace]
 }
@@ -251,10 +208,12 @@ resource "helm_release" "loki" {
   upgrade_install  = true
   create_namespace = false
   timeout          = 900
-  wait             = true
-  cleanup_on_fail  = true
-  atomic           = true
-  namespace        = var.loki.release_namespace
+  # Bucket-creating MinIO hooks only run after install, but pods need the buckets to become ready,
+  # so waiting for readiness (or atomic) would deadlock until timeout.
+  wait            = false
+  cleanup_on_fail = true
+  atomic          = false
+  namespace       = var.loki.release_namespace
 
   depends_on = [kubectl_manifest.namespace]
 }
@@ -272,10 +231,12 @@ resource "helm_release" "tempo" {
   upgrade_install  = true
   create_namespace = false
   timeout          = 900
-  wait             = true
-  cleanup_on_fail  = true
-  atomic           = true
-  namespace        = var.tempo.release_namespace
+  # Bucket-creating MinIO hooks only run after install, but pods need the buckets to become ready,
+  # so waiting for readiness (or atomic) would deadlock until timeout.
+  wait            = false
+  cleanup_on_fail = true
+  atomic          = false
+  namespace       = var.tempo.release_namespace
 
   depends_on = [kubectl_manifest.namespace]
 }

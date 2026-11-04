@@ -42,18 +42,6 @@ variable "kube_state_metrics" {
   default = {}
 }
 
-variable "eck_monitoring" {
-  description = "Elastic Cloud on Kubernetes (ECK) Helm release configuration."
-  type = object({
-    enabled            = optional(bool, true)
-    release_name       = optional(string, "eck-monitoring-stack")
-    release_namespace  = optional(string, "infra-monitoring")
-    release_repository = optional(string, "https://helm.elastic.co")
-  })
-  default = {}
-}
-
-
 variable "alloy" {
   description = "Alloy Helm release configuration."
   type = object({
@@ -111,13 +99,13 @@ variable "tempo" {
 }
 
 variable "gateway_name" {
-  description = "Name of the shared Gateway the Kibana/Grafana HTTPRoutes attaches to."
+  description = "Name of the shared Gateway the Grafana HTTPRoute attaches to."
   type        = string
   default     = "cloudflare-tunnel"
 }
 
 variable "gateway_namespace" {
-  description = "Namespace of the shared Gateway the Kibana/Grafana HTTPRoutes attaches to."
+  description = "Namespace of the shared Gateway the Grafana HTTPRoute attaches to."
   type        = string
   default     = "infra-network"
 }

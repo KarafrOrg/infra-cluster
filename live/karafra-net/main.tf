@@ -17,7 +17,6 @@ module "infra_cluster" {
   loki                              = var.loki
   tempo                             = var.tempo
   eck                               = var.eck
-  eck_monitoring                    = var.eck_monitoring
   metrics_server                    = var.metrics_server
   node_exporter                     = var.node_exporter
   prometheus_operator_crds          = var.prometheus_operator_crds

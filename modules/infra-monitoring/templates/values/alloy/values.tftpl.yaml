@@ -146,7 +146,6 @@ alloy:
 
         output {
           metrics = [
-            otelcol.exporter.otlphttp.elasticsearch.input,
             otelcol.exporter.otlphttp.mimir.input,
           ]
         }
@@ -158,7 +157,6 @@ alloy:
 
         output {
           logs = [
-            otelcol.exporter.otlphttp.elasticsearch.input,
             otelcol.exporter.otlphttp.loki.input,
           ]
         }
@@ -170,38 +168,8 @@ alloy:
 
         output {
           traces = [
-            otelcol.exporter.otlphttp.elasticsearch.input,
             otelcol.exporter.otlphttp.tempo.input,
           ]
-        }
-      }
-
-      otelcol.auth.basic "elasticsearch" {
-        username = sys.env("ES_USERNAME")
-        password = sys.env("ES_PASSWORD")
-      }
-
-      otelcol.exporter.otlphttp "elasticsearch" {
-        client {
-          endpoint = "https://monitoring-apm-apm-http:8200"
-
-          auth = otelcol.auth.basic.elasticsearch.handler
-
-          compression = "gzip"
-          timeout = "30s"
-
-          tls {
-            ca_file = "/etc/alloy/certs/ca.crt"
-          }
-        }
-
-        sending_queue {
-          enabled = true
-          queue_size = 10000
-        }
-
-        retry_on_failure {
-          enabled = true
         }
       }
 
@@ -303,16 +271,6 @@ alloy:
         }
       }
 
-  extraEnv:
-    - name: ES_USERNAME
-      value: "elastic"
-
-    - name: ES_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-elasticsearch-es-elastic-user
-          key: elastic
-
   storagePath: /var/lib/alloy
 
   resources:
@@ -322,12 +280,6 @@ alloy:
     limits:
       cpu: 2
       memory: 4Gi
-
-  mounts:
-    extra:
-      - name: elasticsearch-ca
-        mountPath: /etc/alloy/certs
-        readOnly: true
 
 controller:
   type: statefulset
@@ -345,10 +297,6 @@ controller:
     extra:
       - name: alloy-storage
         emptyDir: {}
-
-      - name: elasticsearch-ca
-        secret:
-          secretName: monitoring-apm-apm-http-ca-internal
 
   affinity:
     podAntiAffinity:
