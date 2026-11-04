@@ -13,6 +13,10 @@ spec:
             operator: Exists
             effect: NoSchedule
       - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          node-role.kubernetes.io/control-plane: ""
+      - op: add
         path: /spec/template/spec/topologySpreadConstraints
         value:
           - maxSkew: 1
