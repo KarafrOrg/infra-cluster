@@ -26,6 +26,8 @@ loki:
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
+  serviceAccount:
+    name: loki-minio
   persistence:
     storageClass: longhorn
   enabled: true

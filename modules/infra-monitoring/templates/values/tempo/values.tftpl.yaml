@@ -21,6 +21,8 @@ storage:
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
+  serviceAccount:
+    name: tempo-minio
   # The upstream quay.io/minio images are no longer pullable; use the pgsty/silo fork (bundles mc).
   image:
     repository: pgsty/silo

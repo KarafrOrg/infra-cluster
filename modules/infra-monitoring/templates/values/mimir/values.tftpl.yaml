@@ -130,6 +130,8 @@ results-cache:
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
+  serviceAccount:
+    name: mimir-minio
   persistence:
     storageClass: longhorn
   nodeSelector:
