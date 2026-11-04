@@ -17,7 +17,7 @@ loki:
   ingester:
     chunk_encoding: snappy
   querier:
-    max_concurrent: 4
+    max_concurrent: 2
   pattern_ingester:
     enabled: true
   limits_config:
