@@ -9,6 +9,7 @@ resource "helm_release" "argo_cd" {
       argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
       github_org                     = var.argocd_github_org,
       github_sso_admin_team          = var.argocd_github_sso_admin_team,
+      otlp_address                   = "${var.faro_host}:4317",
     })
   ]
   upgrade_install  = true

@@ -44,7 +44,7 @@ data:
                           default_source_code:
                             # language=lua
                             inline_string: |
-                              local snippet = [[<script src="https://unpkg.com/@grafana/faro-web-sdk@${faro_version}/dist/bundle/faro-web-sdk.iife.js"></script><script src="https://unpkg.com/@grafana/faro-web-tracing@${faro_version}/dist/bundle/faro-web-tracing.iife.js"></script><script>(function(){var f=window.GrafanaFaroWebSdk,t=window.GrafanaFaroWebTracing;if(!f||!t){return;}f.initializeFaro({url:location.origin+"${faro_path}",app:{name:"${app_name}",namespace:"${app_namespace}",environment:"${environment}"},instrumentations:[].concat(f.getWebInstrumentations(),[new t.TracingInstrumentation()])});})();</script>]]
+                              local snippet = [[<script src="https://unpkg.com/@grafana/faro-web-sdk@${faro_version}/dist/bundle/faro-web-sdk.iife.js"></script><script src="https://unpkg.com/@grafana/faro-web-tracing@${faro_version}/dist/bundle/faro-web-tracing.iife.js"></script><script>(function(){var f=window.GrafanaFaroWebSdk,t=window.GrafanaFaroWebTracing;if(!f||!t){return;}f.initializeFaro({url:location.origin+"${faro_path}",app:{name:"${app_name}",namespace:"${app_namespace}",environment:"${environment}"},ignoreUrls:[/\/stream\//,/\/api\/live\//,/faro\/collect/],instrumentations:[].concat(f.getWebInstrumentations(),[new t.TracingInstrumentation()])});})();</script>]]
                               function envoy_on_response(handle)
                                 local ct = handle:headers():get("content-type")
                                 if ct == nil or not string.find(ct, "text/html", 1, true) then
