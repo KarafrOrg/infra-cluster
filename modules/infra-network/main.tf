@@ -269,6 +269,34 @@ resource "helm_release" "cloudflare_gateway_controller" {
   depends_on      = [kubectl_manifest.cloudflare_gateway_namespace]
 }
 
+resource "kubectl_manifest" "cloudflare_gateway_controller_placement" {
+  count = var.cloudflare_gateway_controller.enabled ? 1 : 0
+  yaml_body = yamlencode({
+    apiVersion = "apps/v1"
+    kind       = "Deployment"
+    metadata = {
+      name      = var.cloudflare_gateway_controller.release_name
+      namespace = var.cloudflare_gateway_controller.release_namespace
+    }
+    spec = {
+      template = {
+        spec = {
+          nodeSelector = { "node-role.kubernetes.io/control-plane" = "" }
+          tolerations = [{
+            key      = "node-role.kubernetes.io/control-plane"
+            operator = "Exists"
+            effect   = "NoSchedule"
+          }]
+        }
+      }
+    }
+  })
+  server_side_apply = true
+  force_conflicts   = true
+  apply_only        = true
+  depends_on        = [helm_release.cloudflare_gateway_controller]
+}
+
 resource "kubectl_manifest" "cloudflare_gateway_controller_gatewayclass" {
   count = var.cloudflare_gateway_controller.enabled ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/manifests/cloudflare_gateway_controller/gatewayclass.tftmpl.yaml", {
