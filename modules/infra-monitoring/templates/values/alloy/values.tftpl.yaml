@@ -147,6 +147,7 @@ alloy:
         output {
           metrics = [
             otelcol.exporter.otlphttp.elasticsearch.input,
+            otelcol.exporter.otlphttp.mimir.input,
           ]
         }
       }
@@ -158,6 +159,7 @@ alloy:
         output {
           logs = [
             otelcol.exporter.otlphttp.elasticsearch.input,
+            otelcol.exporter.otlphttp.loki.input,
           ]
         }
       }
@@ -169,6 +171,7 @@ alloy:
         output {
           traces = [
             otelcol.exporter.otlphttp.elasticsearch.input,
+            otelcol.exporter.otlphttp.tempo.input,
           ]
         }
       }
@@ -190,6 +193,60 @@ alloy:
           tls {
             ca_file = "/etc/alloy/certs/ca.crt"
           }
+        }
+
+        sending_queue {
+          enabled = true
+          queue_size = 10000
+        }
+
+        retry_on_failure {
+          enabled = true
+        }
+      }
+
+      otelcol.exporter.otlphttp "mimir" {
+        client {
+          endpoint = "http://${mimir_release_name}-gateway.${mimir_namespace}.svc.cluster.local/otlp"
+
+          compression = "gzip"
+          timeout = "30s"
+        }
+
+        sending_queue {
+          enabled = true
+          queue_size = 10000
+        }
+
+        retry_on_failure {
+          enabled = true
+        }
+      }
+
+      otelcol.exporter.otlphttp "loki" {
+        client {
+          endpoint = "http://${loki_release_name}-gateway.${loki_namespace}.svc.cluster.local/otlp"
+
+          compression = "gzip"
+          timeout = "30s"
+        }
+
+        sending_queue {
+          enabled = true
+          queue_size = 10000
+        }
+
+        retry_on_failure {
+          enabled = true
+        }
+      }
+
+      otelcol.exporter.otlphttp "tempo" {
+        client {
+          endpoint = "http://${tempo_release_name}-gateway.${tempo_namespace}.svc.cluster.local"
+
+          compression = "gzip"
+          timeout = "30s"
         }
 
         sending_queue {

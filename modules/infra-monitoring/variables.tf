@@ -66,14 +66,58 @@ variable "alloy" {
 }
 
 
+variable "mimir" {
+  description = "Grafana Mimir Helm release configuration."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "mimir")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
+}
+
+variable "grafana" {
+  description = "Grafana Helm release configuration."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "grafana")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
+}
+
+variable "loki" {
+  description = "Grafana Loki Helm release configuration."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "loki")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
+}
+
+variable "tempo" {
+  description = "Grafana Tempo Helm release configuration."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "tempo")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
+}
+
 variable "gateway_name" {
-  description = "Name of the shared Gateway the Kibana HTTPRoute attaches to."
+  description = "Name of the shared Gateway the Kibana/Grafana HTTPRoutes attaches to."
   type        = string
   default     = "cloudflare-tunnel"
 }
 
 variable "gateway_namespace" {
-  description = "Namespace of the shared Gateway the Kibana HTTPRoute attaches to."
+  description = "Namespace of the shared Gateway the Kibana/Grafana HTTPRoutes attaches to."
   type        = string
   default     = "infra-network"
 }

@@ -1,0 +1,42 @@
+replicas: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+persistence:
+  enabled: false
+
+env:
+  GF_SERVER_ROOT_URL: https://grafana.karafra.net
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Mimir
+        type: prometheus
+        access: proxy
+        url: http://${mimir_release_name}-gateway.${mimir_namespace}.svc.cluster.local/prometheus
+        isDefault: true
+        jsonData:
+          httpMethod: POST
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://${loki_release_name}-gateway.${loki_namespace}.svc.cluster.local
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://${tempo_release_name}-gateway.${tempo_namespace}.svc.cluster.local

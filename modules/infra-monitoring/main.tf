@@ -7,6 +7,10 @@ resource "kubectl_manifest" "namespace" {
       var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null,
       var.eck_monitoring.enabled ? var.eck_monitoring.release_namespace : null,
       var.alloy.enabled ? var.alloy.release_namespace : null,
+      var.mimir.enabled ? var.mimir.release_namespace : null,
+      var.grafana.enabled ? var.grafana.release_namespace : null,
+      var.loki.enabled ? var.loki.release_namespace : null,
+      var.tempo.enabled ? var.tempo.release_namespace : null,
     ] : ns if ns != null
   ])
   yaml_body = templatefile("${path.module}/templates/manifests/namespace.tftpl.yaml", {
@@ -147,6 +151,12 @@ resource "helm_release" "alloy" {
   values = [
     templatefile("${path.module}/templates/values/alloy/values.tftpl.yaml", {
       alloy_helm_release_namespace = var.alloy.release_namespace
+      mimir_release_name           = var.mimir.release_name
+      mimir_namespace              = var.mimir.release_namespace
+      loki_release_name            = var.loki.release_name
+      loki_namespace               = var.loki.release_namespace
+      tempo_release_name           = var.tempo.release_name
+      tempo_namespace              = var.tempo.release_namespace
     }),
   ]
   upgrade_install  = true
@@ -159,6 +169,113 @@ resource "helm_release" "alloy" {
 
   depends_on = [
     helm_release.eck_monitoring,
+    helm_release.mimir,
+    helm_release.loki,
+    helm_release.tempo,
     kubectl_manifest.eck_monitoring_otel_user
   ]
+}
+
+resource "helm_release" "mimir" {
+  count      = var.mimir.enabled ? 1 : 0
+  chart      = "mimir-distributed"
+  name       = var.mimir.release_name
+  repository = var.mimir.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/mimir/values.tftpl.yaml", {
+      mimir_helm_release_namespace = var.mimir.release_namespace
+    }),
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.mimir.release_namespace
+
+  depends_on = [kubectl_manifest.namespace]
+}
+
+resource "helm_release" "grafana" {
+  count      = var.grafana.enabled ? 1 : 0
+  chart      = "grafana"
+  name       = var.grafana.release_name
+  repository = var.grafana.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/grafana/values.tftpl.yaml", {
+      mimir_release_name = var.mimir.release_name
+      mimir_namespace    = var.mimir.release_namespace
+      loki_release_name  = var.loki.release_name
+      loki_namespace     = var.loki.release_namespace
+      tempo_release_name = var.tempo.release_name
+      tempo_namespace    = var.tempo.release_namespace
+    }),
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.grafana.release_namespace
+
+  depends_on = [
+    kubectl_manifest.namespace,
+    helm_release.mimir,
+    helm_release.loki,
+    helm_release.tempo,
+  ]
+}
+
+resource "kubectl_manifest" "grafana_httproute" {
+  count = var.grafana.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/grafana-httproute.tftpl.yaml", {
+    namespace         = var.grafana.release_namespace
+    gateway_name      = var.gateway_name
+    gateway_namespace = var.gateway_namespace
+    service_name      = var.grafana.release_name
+  })
+  depends_on = [helm_release.grafana]
+}
+
+resource "helm_release" "loki" {
+  count      = var.loki.enabled ? 1 : 0
+  chart      = "loki"
+  name       = var.loki.release_name
+  repository = var.loki.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/loki/values.tftpl.yaml", {
+    }),
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.loki.release_namespace
+
+  depends_on = [kubectl_manifest.namespace]
+}
+
+resource "helm_release" "tempo" {
+  count      = var.tempo.enabled ? 1 : 0
+  chart      = "tempo-distributed"
+  name       = var.tempo.release_name
+  repository = var.tempo.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/tempo/values.tftpl.yaml", {
+      release_name = var.tempo.release_name
+    }),
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.tempo.release_namespace
+
+  depends_on = [kubectl_manifest.namespace]
 }
