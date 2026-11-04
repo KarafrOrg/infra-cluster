@@ -89,7 +89,25 @@ alloy:
       otelcol.receiver.loki "faro" {
         output {
           logs = [
-            otelcol.processor.transform.log_service_name.input,
+            otelcol.processor.transform.faro_logs.input,
+          ]
+        }
+      }
+
+      otelcol.processor.transform "faro_logs" {
+        error_mode = "ignore"
+
+        log_statements {
+          context = "log"
+          statements = [
+            "set(resource.attributes[\"service.name\"], ExtractPatterns(body.string, \"app_name=(?P<app>[^ ]+)\")[\"app\"])",
+            "set(resource.attributes[\"telemetry.source\"], \"faro\")",
+          ]
+        }
+
+        output {
+          logs = [
+            otelcol.processor.k8sattributes.telemetry.input,
           ]
         }
       }
@@ -392,7 +410,7 @@ controller:
   volumes:
     extra:
       - name: alloy-storage
-        emptyDir: {}
+        emptyDir: { }
 
   affinity:
     podAntiAffinity:

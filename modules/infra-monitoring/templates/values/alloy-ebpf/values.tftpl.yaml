@@ -73,6 +73,26 @@ alloy:
               namespace = "${monitoring_namespaces}"
             }
           }
+
+          exclude_instrument {
+            exe_path = "*kubelet*"
+          }
+
+          exclude_instrument {
+            exe_path = "*containerd*"
+          }
+
+          exclude_instrument {
+            exe_path = "*longhorn*"
+          }
+
+          exclude_instrument {
+            exe_path = "*instance-manager*"
+          }
+      
+          exclude_instrument {
+            exe_path = "*etcd*"
+          }
         }
 
         routes {

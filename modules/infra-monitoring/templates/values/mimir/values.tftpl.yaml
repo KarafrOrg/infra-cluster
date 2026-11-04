@@ -7,6 +7,8 @@ mimir:
     limits:
       # Span-metric exemplars link metrics to traces in Grafana.
       max_global_exemplars_per_user: 100000
+      # Span metrics from Tempo/Beyla make up most series; 150k default was exceeded.
+      max_global_series_per_user: 300000
 
 alertmanager:
   nodeSelector:
