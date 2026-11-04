@@ -75,6 +75,12 @@ alloy:
           }
         }
 
+        routes {
+          unmatched       = "heuristic"
+          ignored_patterns = ["/api/v1/stream/*", "/api/live/*"]
+          ignore_mode      = "traces"
+        }
+
         output {
           traces = [otelcol.exporter.otlphttp.alloy.input]
         }
