@@ -53,8 +53,13 @@ longhornUI:
   log:
     format: json
 persistence:
+  defaultClassReplicaCount: 3
   shareManagerTolerations:
     enable: true
 defaultSettings:
+  defaultReplicaCount: 2
+  replicaSoftAntiAffinity: false
+  allowVolumeCreationWithDegradedAvailability: false
+  replicaAutoBalance: least-effort
   deletingConfirmationFlag: true
   taintToleration: "node-role.kubernetes.io/control-plane:NoSchedule"
