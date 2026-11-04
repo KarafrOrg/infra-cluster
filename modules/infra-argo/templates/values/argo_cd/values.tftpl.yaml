@@ -16,6 +16,7 @@ configs:
     server.insecure: true
 
   cm:
+    admin.enabled: "false"
     dex.config: |
       connectors:
         - type: github
