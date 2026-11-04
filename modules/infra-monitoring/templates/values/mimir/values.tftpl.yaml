@@ -4,6 +4,9 @@
 mimir:
   structuredConfig:
     multitenancy_enabled: false
+    limits:
+      # Span-metric exemplars link metrics to traces in Grafana.
+      max_global_exemplars_per_user: 100000
 
 alertmanager:
   nodeSelector:
@@ -17,11 +20,11 @@ alertmanager:
     enabled: true
   replicas: 2
   resources:
-    limits:
-      memory: 1.4Gi
     requests:
-      cpu: 1
-      memory: 1Gi
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
   statefulSet:
     enabled: true
 
@@ -36,11 +39,11 @@ compactor:
     storageClass: longhorn
     size: 20Gi
   resources:
-    limits:
-      memory: 2.1Gi
     requests:
-      cpu: 1
-      memory: 1.5Gi
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
 
 distributor:
   nodeSelector:
@@ -51,11 +54,11 @@ distributor:
       effect: NoSchedule
   replicas: 2
   resources:
-    limits:
-      memory: 5.7Gi
     requests:
-      cpu: 2
-      memory: 4Gi
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
 
 ingester:
   nodeSelector:
@@ -69,11 +72,11 @@ ingester:
     size: 50Gi
   replicas: 3
   resources:
-    limits:
-      memory: 12Gi
     requests:
-      cpu: 3.5
-      memory: 8Gi
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 3Gi
   topologySpreadConstraints: {}
   affinity:
     podAntiAffinity:
@@ -87,6 +90,17 @@ ingester:
           topologyKey: "kubernetes.io/hostname"
   zoneAwareReplication:
     topologyKey: "kubernetes.io/hostname"
+    # Zone StatefulSets ignore the component-level nodeSelector.
+    zones:
+      - name: zone-a
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
+      - name: zone-b
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
+      - name: zone-c
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
 
 chunks-cache:
   nodeSelector:
@@ -96,7 +110,8 @@ chunks-cache:
       operator: Exists
       effect: NoSchedule
   enabled: true
-  replicas: 3
+  replicas: 1
+  allocatedMemory: 1024
 
 index-cache:
   nodeSelector:
@@ -106,7 +121,8 @@ index-cache:
       operator: Exists
       effect: NoSchedule
   enabled: true
-  replicas: 3
+  replicas: 1
+  allocatedMemory: 512
 
 metadata-cache:
   nodeSelector:
@@ -116,7 +132,8 @@ metadata-cache:
       operator: Exists
       effect: NoSchedule
   enabled: true
-  replicas: 3
+  replicas: 1
+  allocatedMemory: 128
 
 results-cache:
   nodeSelector:
@@ -126,7 +143,8 @@ results-cache:
       operator: Exists
       effect: NoSchedule
   enabled: true
-  replicas: 3
+  replicas: 1
+  allocatedMemory: 256
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
@@ -172,10 +190,10 @@ overrides_exporter:
       effect: NoSchedule
   replicas: 1
   resources:
-    limits:
-      memory: 128Mi
     requests:
-      cpu: 100m
+      cpu: 25m
+      memory: 64Mi
+    limits:
       memory: 128Mi
 
 querier:
@@ -187,11 +205,11 @@ querier:
       effect: NoSchedule
   replicas: 2
   resources:
-    limits:
-      memory: 5.6Gi
     requests:
-      cpu: 2
-      memory: 4Gi
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
 
 query_frontend:
   nodeSelector:
@@ -202,11 +220,11 @@ query_frontend:
       effect: NoSchedule
   replicas: 2
   resources:
-    limits:
-      memory: 4Gi
     requests:
-      cpu: 2
-      memory: 2Gi
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
 
 ruler:
   nodeSelector:
@@ -217,11 +235,11 @@ ruler:
       effect: NoSchedule
   replicas: 1
   resources:
-    limits:
-      memory: 2.8Gi
     requests:
-      cpu: 1
-      memory: 2Gi
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
 
 store_gateway:
   nodeSelector:
@@ -235,11 +253,11 @@ store_gateway:
     size: 10Gi
   replicas: 3
   resources:
-    limits:
-      memory: 2.1Gi
     requests:
-      cpu: 1
-      memory: 1.5Gi
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
   topologySpreadConstraints: {}
   affinity:
     podAntiAffinity:
@@ -253,6 +271,17 @@ store_gateway:
           topologyKey: "kubernetes.io/hostname"
   zoneAwareReplication:
     topologyKey: "kubernetes.io/hostname"
+    # Zone StatefulSets ignore the component-level nodeSelector.
+    zones:
+      - name: zone-a
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
+      - name: zone-b
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
+      - name: zone-c
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
 
 gateway:
   nodeSelector:
@@ -263,11 +292,11 @@ gateway:
       effect: NoSchedule
   replicas: 2
   resources:
-    limits:
-      memory: 731Mi
     requests:
-      cpu: 1
-      memory: 512Mi
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
 
 query_scheduler:
   nodeSelector:

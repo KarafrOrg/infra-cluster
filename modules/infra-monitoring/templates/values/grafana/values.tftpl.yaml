@@ -19,24 +19,141 @@ persistence:
   enabled: false
 
 env:
-  GF_SERVER_ROOT_URL: https://grafana.karafra.net
+  GF_SERVER_ROOT_URL: ${root_url}
+  # Both hostnames are routed to Grafana; without this Grafana redirects any non-root_url Host to root_url.
+  GF_SERVER_ENFORCE_DOMAIN: "false"
+envValueFrom:
+  GF_DATABASE_PASSWORD:
+    secretKeyRef:
+      name: grafana-postgres
+      key: password
+%{ if github_oauth_enabled ~}
+  GF_AUTH_GITHUB_CLIENT_ID:
+    secretKeyRef:
+      name: grafana-github-oauth
+      key: clientID
+  GF_AUTH_GITHUB_CLIENT_SECRET:
+    secretKeyRef:
+      name: grafana-github-oauth
+      key: clientSecret
+%{ endif ~}
+
+grafana.ini:
+  server:
+    root_url: ${root_url}
+  # Sessions and users live in the database; a shared one is required so logins work across replicas.
+  # Grafana's own backend spans continue the browser (Faro) traces.
+  tracing.opentelemetry:
+    sampler_type: const
+    sampler_param: 1
+  tracing.opentelemetry.otlp:
+    address: ${alloy_release_name}.${alloy_namespace}.svc.cluster.local:4317
+    propagation: w3c
+  database:
+    type: postgres
+    host: ${postgres_host}:5432
+    name: grafana
+    user: grafana
+    ssl_mode: disable
+%{ if github_oauth_enabled ~}
+  auth.github:
+    enabled: true
+    name: GitHub
+    allow_sign_up: true
+    scopes: user:email,read:org
+    auth_url: https://github.com/login/oauth/authorize
+    token_url: https://github.com/login/oauth/access_token
+    api_url: https://api.github.com/user
+    allowed_organizations: ${github_org}
+    role_attribute_path: "contains(groups[*], '@${github_org}/${github_admin_team}') && 'Admin' || contains(groups[*], '@${github_org}/${github_viewer_team}') && 'Viewer'"
+    # Deny login for org members who are in neither team.
+    role_attribute_strict: true
+%{ endif ~}
 
 datasources:
   datasources.yaml:
     apiVersion: 1
+    # Drop rows created before UIDs were pinned; otherwise provisioning fails with "data source not found".
+    deleteDatasources:
+      - name: Mimir
+        orgId: 1
+      - name: Loki
+        orgId: 1
+      - name: Tempo
+        orgId: 1
+      - name: Pyroscope
+        orgId: 1
     datasources:
       - name: Mimir
         type: prometheus
         access: proxy
         url: http://${mimir_release_name}-gateway.${mimir_namespace}.svc.cluster.local/prometheus
+        uid: mimir
         isDefault: true
         jsonData:
           httpMethod: POST
+          # Span-metric exemplars jump to the trace.
+          exemplarTraceIdDestinations:
+            - name: trace_id
+              datasourceUid: tempo
       - name: Loki
         type: loki
+        uid: loki
         access: proxy
         url: http://${loki_release_name}-gateway.${loki_namespace}.svc.cluster.local
+        jsonData:
+          derivedFields:
+            - name: TraceID
+              matcherType: label
+              matcherRegex: trace_id
+              url: "$$${__value.raw}"
+              datasourceUid: tempo
+              urlDisplayLabel: View trace
       - name: Tempo
         type: tempo
         access: proxy
         url: http://${tempo_release_name}-gateway.${tempo_namespace}.svc.cluster.local
+        uid: tempo
+        jsonData:
+          serviceMap:
+            datasourceUid: mimir
+          nodeGraph:
+            enabled: true
+          tracesToLogsV2:
+            datasourceUid: loki
+            filterByTraceID: true
+            filterBySpanID: false
+            spanStartTimeShift: -5m
+            spanEndTimeShift: 5m
+            tags:
+              - key: service.name
+                value: service_name
+          tracesToMetrics:
+            datasourceUid: mimir
+            spanStartTimeShift: -5m
+            spanEndTimeShift: 5m
+            tags:
+              - key: service.name
+                value: service_name
+            queries:
+              - name: Request rate
+                query: sum(rate(traces_span_metrics_calls_total{$$__tags}[$$__rate_interval]))
+              - name: Error rate
+                query: sum(rate(traces_span_metrics_calls_total{$$__tags, status_code="STATUS_CODE_ERROR"}[$$__rate_interval]))
+              - name: Latency p95
+                query: histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket{$$__tags}[$$__rate_interval])) by (le))
+%{ if pyroscope_enabled ~}
+          tracesToProfiles:
+            datasourceUid: pyroscope
+            profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
+            tags:
+              - key: service.name
+                value: service_name
+%{ endif ~}
+%{ if pyroscope_enabled ~}
+      - name: Pyroscope
+        type: grafana-pyroscope-datasource
+        uid: pyroscope
+        access: proxy
+        url: http://${pyroscope_release_name}.${pyroscope_namespace}.svc.cluster.local:4040
+%{ endif ~}

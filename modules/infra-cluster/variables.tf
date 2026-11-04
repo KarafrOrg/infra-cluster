@@ -183,17 +183,6 @@ variable "longhorn" {
   default = {}
 }
 
-variable "eck" {
-  description = "Elastic Cloud on Kubernetes (ECK) Helm release configuration."
-  type = object({
-    enabled            = optional(bool, true)
-    release_name       = optional(string, "eck-operator")
-    release_namespace  = optional(string, "infra-storage")
-    release_repository = optional(string, "https://helm.elastic.co")
-  })
-  default = {}
-}
-
 variable "alloy" {
   description = "Alloy Helm release configuration."
   type = object({
@@ -223,6 +212,16 @@ variable "grafana" {
     release_name       = optional(string, "grafana")
     release_namespace  = optional(string, "infra-monitoring")
     release_repository = optional(string, "https://grafana.github.io/helm-charts")
+    root_url           = optional(string, "https://grafana.kubernetes.karafra.net")
+    github_oauth = optional(object({
+      enabled                     = optional(bool, true)
+      org                         = optional(string, "KarafrOrg")
+      admin_team                  = optional(string, "grafana-admins")
+      viewer_team                 = optional(string, "grafana-viewers")
+      client_id_gcp_secret_id     = optional(string, "grafana-github-oauth-client-id")
+      client_secret_gcp_secret_id = optional(string, "grafana-github-oauth-client-secret")
+      secret_store_name           = optional(string, "gcp-cluster-secret-store")
+    }), {})
   })
   default = {}
 }
@@ -232,6 +231,17 @@ variable "loki" {
   type = object({
     enabled            = optional(bool, true)
     release_name       = optional(string, "loki")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
+}
+
+variable "pyroscope" {
+  description = "Grafana Pyroscope Helm release configuration (also toggles the eBPF profiling Alloy DaemonSet)."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "pyroscope")
     release_namespace  = optional(string, "infra-monitoring")
     release_repository = optional(string, "https://grafana.github.io/helm-charts")
   })

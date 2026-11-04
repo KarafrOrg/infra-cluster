@@ -54,18 +54,29 @@ resource "kubectl_manifest" "argocd_gateway" {
   depends_on = [kubectl_manifest.argocd_gateway_parameters]
 }
 
-resource "kubectl_manifest" "argocd_httproute" {
-  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/httproute.tftmpl.yaml", {
-    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
-    argocd_ingress_domain          = var.argocd_ingress_domain,
-  })
+# Envoy (Faro injection) between the existing Argo CD Gateway and argocd-server.
+module "argocd_published_service" {
+  source = "../published-service"
+
+  name           = "argocd"
+  namespace      = var.argo_cd_helm_release_namespace
+  hostnames      = [var.argocd_ingress_domain]
+  upstream_host  = "argocd-server.${var.argo_cd_helm_release_namespace}.svc.cluster.local"
+  faro_host      = var.faro_host
+  create_gateway = false
+
   depends_on = [kubectl_manifest.argocd_gateway]
+}
+
+moved {
+  from = kubectl_manifest.argocd_httproute
+  to   = module.argocd_published_service.kubectl_manifest.httproute
 }
 
 resource "kubectl_manifest" "argocd_github_sso" {
   yaml_body = templatefile("${path.module}/templates/manifests/argocd/github-sso-external-secret.tftmpl.yaml", {
-    argo_cd_helm_release_namespace       = var.argo_cd_helm_release_namespace,
-    github_sso_client_id_gcp_secret_id   = var.argocd_github_sso_client_id_gcp_secret_id,
+    argo_cd_helm_release_namespace         = var.argo_cd_helm_release_namespace,
+    github_sso_client_id_gcp_secret_id     = var.argocd_github_sso_client_id_gcp_secret_id,
     github_sso_client_secret_gcp_secret_id = var.argocd_github_sso_client_secret_gcp_secret_id,
   })
   depends_on = [helm_release.argo_cd]
@@ -73,11 +84,11 @@ resource "kubectl_manifest" "argocd_github_sso" {
 
 resource "kubectl_manifest" "argocd_github_repo_creds" {
   yaml_body = templatefile("${path.module}/templates/manifests/argocd/github-external-secret.tftmpl.yaml", {
-    argo_cd_helm_release_namespace        = var.argo_cd_helm_release_namespace,
-    github_org                            = var.argocd_github_org,
-    github_app_id_gcp_secret_id           = var.argocd_github_app_id_gcp_secret_id,
+    argo_cd_helm_release_namespace           = var.argo_cd_helm_release_namespace,
+    github_org                               = var.argocd_github_org,
+    github_app_id_gcp_secret_id              = var.argocd_github_app_id_gcp_secret_id,
     github_app_installation_id_gcp_secret_id = var.argocd_github_app_installation_id_gcp_secret_id,
-    github_app_private_key_gcp_secret_id  = var.argocd_github_app_private_key_gcp_secret_id,
+    github_app_private_key_gcp_secret_id     = var.argocd_github_app_private_key_gcp_secret_id,
   })
   depends_on = [helm_release.argo_cd]
 }

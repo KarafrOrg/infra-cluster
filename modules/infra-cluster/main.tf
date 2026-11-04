@@ -51,6 +51,7 @@ module "infra_argo" {
   gateway_cloudflare_account_id_secret            = var.cloudflare_gateway_controller.cloudflare_account_id_secret
   gateway_cloudflare_api_token_secret             = var.cloudflare_gateway_controller.cloudflare_api_token_secret
   cluster_issuer_name                             = var.cert_manager.cluster_issuer_name
+  faro_host                                       = "${var.alloy.release_name}.${var.alloy.release_namespace}.svc.cluster.local"
   // endregion
   depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
 }
@@ -94,16 +95,19 @@ module "infra_network" {
 module "infra_monitoring" {
   source = "../infra-monitoring"
   // region Monitoring-related Helm release configurations
-  metrics_server           = var.metrics_server
-  prometheus_operator_crds = var.prometheus_operator_crds
-  node_exporter            = var.node_exporter
-  alloy                    = var.alloy
-  mimir                    = var.mimir
-  grafana                  = var.grafana
-  loki                     = var.loki
-  tempo                    = var.tempo
-  gateway_name             = var.cloudflare_gateway_controller.gateway_name
-  gateway_namespace        = var.cloudflare_gateway_controller.release_namespace
+  metrics_server                       = var.metrics_server
+  prometheus_operator_crds             = var.prometheus_operator_crds
+  node_exporter                        = var.node_exporter
+  alloy                                = var.alloy
+  mimir                                = var.mimir
+  grafana                              = var.grafana
+  loki                                 = var.loki
+  tempo                                = var.tempo
+  pyroscope                            = var.pyroscope
+  gateway_class_name                   = var.cloudflare_gateway_controller.gateway_class_name
+  gateway_tunnel_replicas              = var.cloudflare_gateway_controller.tunnel_replicas
+  gateway_cloudflare_account_id_secret = var.cloudflare_gateway_controller.cloudflare_account_id_secret
+  gateway_cloudflare_api_token_secret  = var.cloudflare_gateway_controller.cloudflare_api_token_secret
   // endregion
   depends_on = [module.infra_secrets, module.infra_network]
 }
@@ -112,6 +116,5 @@ module "infra_storage" {
   source = "../infra-storage"
   // region Storage-related Helm release configurations
   longhorn = var.longhorn
-  eck      = var.eck
   // endregion
 }

@@ -16,7 +16,7 @@ module "infra_cluster" {
   grafana                           = var.grafana
   loki                              = var.loki
   tempo                             = var.tempo
-  eck                               = var.eck
+  pyroscope                         = var.pyroscope
   metrics_server                    = var.metrics_server
   node_exporter                     = var.node_exporter
   prometheus_operator_crds          = var.prometheus_operator_crds

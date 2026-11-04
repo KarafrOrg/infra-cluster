@@ -43,7 +43,53 @@ alloy:
 
           traces = [
             otelcol.connector.spanmetrics.default.input,
+            otelcol.connector.servicegraph.default.input,
             otelcol.processor.k8sattributes.telemetry.input,
+          ]
+        }
+      }
+
+      // Browser telemetry (Faro SDK) is forwarded same-origin by the per-service Envoy proxies.
+      faro.receiver "browser" {
+        server {
+          listen_address = "0.0.0.0"
+          listen_port    = 12347
+        }
+
+        output {
+          logs = [
+            otelcol.receiver.loki.faro.receiver,
+          ]
+
+          traces = [
+            otelcol.processor.transform.faro_source.input,
+          ]
+        }
+      }
+
+      // Marks browser traces so they can be queried as { resource.telemetry.source = "faro" }.
+      otelcol.processor.transform "faro_source" {
+        error_mode = "ignore"
+
+        trace_statements {
+          context = "resource"
+          statements = [
+            "set(attributes[\"telemetry.source\"], \"faro\")",
+          ]
+        }
+
+        output {
+          traces = [
+            otelcol.connector.spanmetrics.default.input,
+            otelcol.processor.batch.traces.input,
+          ]
+        }
+      }
+
+      otelcol.receiver.loki "faro" {
+        output {
+          logs = [
+            otelcol.processor.transform.log_service_name.input,
           ]
         }
       }
@@ -131,6 +177,23 @@ alloy:
         exemplars {
           enabled = true
           max_per_data_point = 5
+        }
+
+        output {
+          metrics = [
+            otelcol.processor.k8sattributes.telemetry.input,
+          ]
+        }
+      }
+
+      // Service graph edges are paired from client/server spans and stored in Mimir for Grafana's Tempo service map.
+      otelcol.connector.servicegraph "default" {
+        dimensions             = ["k8s.namespace.name"]
+        metrics_flush_interval = "15s"
+
+        store {
+          ttl       = "10s"
+          max_items = 10000
         }
 
         output {
@@ -266,6 +329,25 @@ alloy:
       otelcol.receiver.loki "pods" {
         output {
           logs = [
+            otelcol.processor.transform.log_service_name.input,
+          ]
+        }
+      }
+
+      // Logs from loki.source.kubernetes carry no OTLP service.name, so Loki labels them unknown_service.
+      otelcol.processor.transform "log_service_name" {
+        error_mode = "ignore"
+
+        log_statements {
+          context = "log"
+          statements = [
+            "set(resource.attributes[\"service.name\"], attributes[\"app\"]) where resource.attributes[\"service.name\"] == nil and attributes[\"app\"] != nil",
+            "set(resource.attributes[\"service.name\"], attributes[\"container\"]) where resource.attributes[\"service.name\"] == nil and attributes[\"container\"] != nil",
+          ]
+        }
+
+        output {
+          logs = [
             otelcol.processor.k8sattributes.telemetry.input,
           ]
         }
@@ -280,6 +362,20 @@ alloy:
     limits:
       cpu: 2
       memory: 4Gi
+
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+    - name: faro
+      port: 12347
+      targetPort: 12347
+      protocol: TCP
 
 controller:
   type: statefulset
@@ -304,6 +400,7 @@ controller:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: alloy
+              app.kubernetes.io/instance: alloy
           topologyKey: kubernetes.io/hostname
 
   topologySpreadConstraints:
@@ -313,3 +410,4 @@ controller:
       labelSelector:
         matchLabels:
           app.kubernetes.io/name: alloy
+          app.kubernetes.io/instance: alloy

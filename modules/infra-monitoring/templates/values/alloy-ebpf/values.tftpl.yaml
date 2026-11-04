@@ -1,0 +1,111 @@
+alloy:
+  configMap:
+    content: |
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+
+      discovery.kubernetes "pods" {
+        role = "pod"
+
+        selectors {
+          role  = "pod"
+          field = "spec.nodeName=" + sys.env("NODE_NAME")
+        }
+      }
+
+      discovery.relabel "ebpf" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
+          separator     = "/"
+          target_label  = "service_name"
+        }
+      }
+
+      pyroscope.ebpf "default" {
+        targets    = discovery.relabel.ebpf.output
+        forward_to = [pyroscope.write.default.receiver]
+      }
+
+      pyroscope.write "default" {
+        endpoint {
+          url = "http://${pyroscope_release_name}.${pyroscope_namespace}.svc.cluster.local:4040"
+        }
+      }
+
+      // Beyla auto-instruments HTTP/gRPC services and ships spans through the main Alloy,
+      // which adds Kubernetes attributes and forwards to Tempo.
+      beyla.ebpf "default" {
+        attributes {
+          kubernetes {
+            enable = "true"
+            // Only cache metadata for pods on this node; cluster-wide informers dominate memory on a DaemonSet.
+            meta_restrict_local_node = true
+          }
+        }
+
+        discovery {
+          instrument {
+            open_ports = "1-65535"
+          }
+
+          // Skip the telemetry stack itself so shipping traces does not generate more traces.
+          exclude_instrument {
+            kubernetes {
+              namespace = "${monitoring_namespaces}"
+            }
+          }
+        }
+
+        output {
+          traces = [otelcol.exporter.otlphttp.alloy.input]
+        }
+      }
+
+      otelcol.exporter.otlphttp "alloy" {
+        client {
+          endpoint = "http://${alloy_release_name}.${alloy_namespace}.svc.cluster.local:4318"
+        }
+      }
+
+  securityContext:
+    privileged: true
+    runAsUser: 0
+
+  extraEnv:
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 384Mi
+    limits:
+      memory: 1536Mi
+
+controller:
+  type: daemonset
+  hostPID: true
+  # Profile every node, including tainted control-plane nodes.
+  tolerations:
+    - operator: Exists

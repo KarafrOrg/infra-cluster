@@ -1,0 +1,27 @@
+pyroscope:
+  replicaCount: 1
+  extraArgs:
+    log.level: info
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  persistence:
+    enabled: true
+    storageClassName: longhorn
+    size: 20Gi
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
+# The bundled Alloy only scrapes Pyroscope itself; profiles come from the eBPF Alloy DaemonSet.
+alloy:
+  enabled: false
+
+minio:
+  enabled: false

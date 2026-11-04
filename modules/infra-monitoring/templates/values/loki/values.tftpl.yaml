@@ -23,6 +23,13 @@ loki:
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
+    # Alloy replays existing pod logs on start; default 2 MB/s limits throttle that backfill.
+    ingestion_rate_mb: 16
+    ingestion_burst_size_mb: 32
+    per_stream_rate_limit: 8MB
+    per_stream_rate_limit_burst: 32MB
+    # Entries older than this are rejected (400) and dropped permanently by Alloy.
+    reject_old_samples_max_age: 168h
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
@@ -64,8 +71,8 @@ gateway:
   replicas: 2
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 50m
+      memory: 64Mi
     limits:
       memory: 256Mi
   nodeSelector:
@@ -79,10 +86,10 @@ distributor:
   replicas: 2
   resources:
     requests:
-      cpu: 1
-      memory: 1Gi
+      cpu: 100m
+      memory: 128Mi
     limits:
-      memory: 2Gi
+      memory: 512Mi
   maxUnavailable: 1
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
@@ -95,14 +102,16 @@ ingester:
   replicas: 3
   resources:
     requests:
-      cpu: 1
-      memory: 2Gi
+      cpu: 250m
+      memory: 512Mi
     limits:
-      memory: 4Gi
+      memory: 2Gi
   persistence:
     enabled: true
     claims:
       - name: data
+        accessModes:
+          - ReadWriteOnce
         size: 50Gi
         storageClass: longhorn
   nodeSelector:
@@ -111,15 +120,19 @@ ingester:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
+  # Mimir's rollout-operator in this namespace manages any StatefulSet labelled rollout-group,
+  # so Loki ingesters must not be zone-aware.
+  zoneAwareReplication:
+    enabled: false
 
 querier:
   replicas: 2
   resources:
     requests:
-      cpu: 1
-      memory: 2Gi
+      cpu: 100m
+      memory: 256Mi
     limits:
-      memory: 4Gi
+      memory: 1Gi
   maxUnavailable: 1
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
@@ -132,10 +145,10 @@ queryFrontend:
   replicas: 2
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 50m
+      memory: 128Mi
     limits:
-      memory: 2Gi
+      memory: 512Mi
   maxUnavailable: 1
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
@@ -148,10 +161,10 @@ queryScheduler:
   replicas: 2
   resources:
     requests:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 25m
+      memory: 64Mi
     limits:
-      memory: 512Mi
+      memory: 256Mi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -163,17 +176,15 @@ indexGateway:
   replicas: 2
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 50m
+      memory: 128Mi
     limits:
-      memory: 2Gi
+      memory: 512Mi
   maxUnavailable: 1
   persistence:
     enabled: true
-    claims:
-      - name: data
-        size: 10Gi
-        storageClass: longhorn
+    size: 10Gi
+    storageClass: longhorn
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -185,16 +196,34 @@ compactor:
   replicas: 1
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 50m
+      memory: 128Mi
     limits:
-      memory: 2Gi
+      memory: 512Mi
   persistence:
     enabled: true
     claims:
       - name: data
+        accessModes:
+          - ReadWriteOnce
         size: 20Gi
         storageClass: longhorn
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
+patternIngester:
+  # The chart defaults to 0 replicas; Logs Drilldown needs a running pattern ingester.
+  replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -206,10 +235,10 @@ ruler:
   replicas: 1
   resources:
     requests:
-      cpu: 200m
-      memory: 512Mi
+      cpu: 50m
+      memory: 128Mi
     limits:
-      memory: 1Gi
+      memory: 512Mi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -218,7 +247,8 @@ ruler:
       effect: NoSchedule
 
 chunksCache:
-  replicas: 3
+  replicas: 1
+  allocatedMemory: 1024
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -227,7 +257,8 @@ chunksCache:
       effect: NoSchedule
 
 resultsCache:
-  replicas: 3
+  replicas: 1
+  allocatedMemory: 256
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:

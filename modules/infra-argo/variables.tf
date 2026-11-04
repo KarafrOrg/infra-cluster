@@ -93,3 +93,8 @@ variable "gateway_cloudflare_api_token_secret" {
   description = "GCP Secret Manager secret ID holding the Cloudflare API token for the Argo CD Gateway."
   type        = string
 }
+
+variable "faro_host" {
+  description = "In-cluster DNS name of the Faro receiver (Alloy) the Argo CD frontend proxy forwards browser telemetry to."
+  type        = string
+}

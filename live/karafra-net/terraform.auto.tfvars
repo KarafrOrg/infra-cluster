@@ -62,12 +62,11 @@ kube_state_metrics = { enabled = true }
 
 longhorn = { enabled = true }
 
-eck = { enabled = true }
-
 
 alloy = { enabled = true }
 
-mimir   = { enabled = true }
-grafana = { enabled = true }
-loki    = { enabled = true }
-tempo   = { enabled = true }
+mimir     = { enabled = true }
+grafana   = { enabled = true }
+loki      = { enabled = true }
+tempo     = { enabled = true }
+pyroscope = { enabled = true }

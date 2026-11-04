@@ -72,6 +72,16 @@ variable "grafana" {
     release_name       = optional(string, "grafana")
     release_namespace  = optional(string, "infra-monitoring")
     release_repository = optional(string, "https://grafana.github.io/helm-charts")
+    root_url           = optional(string, "https://grafana.kubernetes.karafra.net")
+    github_oauth = optional(object({
+      enabled                     = optional(bool, true)
+      org                         = optional(string, "KarafrOrg")
+      admin_team                  = optional(string, "grafana-admins")
+      viewer_team                 = optional(string, "grafana-viewers")
+      client_id_gcp_secret_id     = optional(string, "grafana-github-oauth-client-id")
+      client_secret_gcp_secret_id = optional(string, "grafana-github-oauth-client-secret")
+      secret_store_name           = optional(string, "gcp-cluster-secret-store")
+    }), {})
   })
   default = {}
 }
@@ -98,14 +108,34 @@ variable "tempo" {
   default = {}
 }
 
-variable "gateway_name" {
-  description = "Name of the shared Gateway the Grafana HTTPRoute attaches to."
+variable "pyroscope" {
+  description = "Grafana Pyroscope Helm release configuration (also toggles the eBPF profiling Alloy DaemonSet)."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "pyroscope")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://grafana.github.io/helm-charts")
+  })
+  default = {}
+}
+
+variable "gateway_class_name" {
+  description = "GatewayClass used by the dedicated Gateways of published services."
   type        = string
   default     = "cloudflare-tunnel"
 }
 
-variable "gateway_namespace" {
-  description = "Namespace of the shared Gateway the Grafana HTTPRoute attaches to."
+variable "gateway_tunnel_replicas" {
+  description = "Tunnel replicas for each dedicated Gateway."
+  type        = list(object({ name = string, zone = string }))
+}
+
+variable "gateway_cloudflare_account_id_secret" {
+  description = "GCP Secret Manager secret ID holding the Cloudflare account ID for the dedicated Gateways."
   type        = string
-  default     = "infra-network"
+}
+
+variable "gateway_cloudflare_api_token_secret" {
+  description = "GCP Secret Manager secret ID holding the Cloudflare API token for the dedicated Gateways."
+  type        = string
 }

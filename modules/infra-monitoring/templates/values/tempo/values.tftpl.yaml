@@ -21,6 +21,12 @@ storage:
 
 # Bundled MinIO is used as object storage; replace with external S3/GCS if available.
 minio:
+  # The bundled mc in the silo image rejects the chart's legacy `admin policy set`, failing the user hook.
+  # Tempo only needs the root credentials, so skip creating the console user.
+  users: []
+  # The RWO Longhorn volume cannot be attached to the old and new pod at once during a rollout.
+  DeploymentUpdate:
+    type: Recreate
   serviceAccount:
     name: tempo-minio
   # The upstream quay.io/minio images are no longer pullable; use the pgsty/silo fork (bundles mc).
@@ -32,6 +38,7 @@ minio:
     tag: RELEASE.2026-09-03T13-18-01Z
   persistence:
     storageClass: longhorn
+    size: 250Gi
   enabled: true
   makeUserJob:
     nodeSelector:
@@ -68,8 +75,8 @@ gateway:
   replicas: 2
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 50m
+      memory: 64Mi
     limits:
       memory: 256Mi
   nodeSelector:
@@ -79,14 +86,42 @@ gateway:
       operator: Exists
       effect: NoSchedule
 
+# Required for TraceQL metrics queries (rate() etc.) in Grafana; service graph and span metrics come from Alloy.
+metricsGenerator:
+  enabled: true
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  config:
+    processor:
+      local_blocks:
+        filter_server_spans: false
+        flush_to_storage: true
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors:
+        - local-blocks
+
 distributor:
   replicas: 2
   resources:
     requests:
-      cpu: 1
-      memory: 1Gi
+      cpu: 100m
+      memory: 128Mi
     limits:
-      memory: 2Gi
+      memory: 512Mi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -98,8 +133,8 @@ ingester:
   replicas: 3
   resources:
     requests:
-      cpu: 1
-      memory: 2Gi
+      cpu: 250m
+      memory: 1536Mi
     limits:
       memory: 4Gi
   persistence:
@@ -116,10 +151,10 @@ querier:
   replicas: 2
   resources:
     requests:
-      cpu: 1
-      memory: 2Gi
+      cpu: 100m
+      memory: 256Mi
     limits:
-      memory: 4Gi
+      memory: 1Gi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -131,10 +166,10 @@ queryFrontend:
   replicas: 2
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 50m
+      memory: 128Mi
     limits:
-      memory: 2Gi
+      memory: 512Mi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -144,12 +179,16 @@ queryFrontend:
 
 compactor:
   replicas: 1
+  config:
+    compaction:
+      # Keep a week of traces.
+      block_retention: 168h
   resources:
     requests:
-      cpu: 500m
+      cpu: 100m
       memory: 1Gi
     limits:
-      memory: 2Gi
+      memory: 3Gi
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
