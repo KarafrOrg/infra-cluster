@@ -129,10 +129,10 @@ querier:
   replicas: 2
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
+      cpu: 200m
       memory: 1Gi
+    limits:
+      memory: 4Gi
   maxUnavailable: 1
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
