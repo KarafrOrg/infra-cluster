@@ -17,7 +17,7 @@ loki:
   ingester:
     chunk_encoding: snappy
   querier:
-    max_concurrent: 2
+    max_concurrent: 6
   pattern_ingester:
     enabled: true
   limits_config:
@@ -129,10 +129,10 @@ querier:
   replicas: 2
   resources:
     requests:
-      cpu: 200m
-      memory: 1Gi
+      cpu: 1000m
+      memory: 3Gi
     limits:
-      memory: 4Gi
+      memory: 6Gi
   maxUnavailable: 1
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
