@@ -199,7 +199,7 @@ alloy:
 
         output {
           metrics = [
-            otelcol.processor.k8sattributes.telemetry.input,
+            otelcol.processor.transform.replica_label.input,
           ]
         }
       }
@@ -212,6 +212,30 @@ alloy:
         store {
           ttl       = "10s"
           max_items = 10000
+        }
+
+        output {
+          metrics = [
+            otelcol.processor.transform.replica_label.input,
+          ]
+        }
+      }
+
+      otelcol.processor.transform "replica_label" {
+        error_mode = "ignore"
+
+        metric_statements {
+          context = "resource"
+          statements = [
+            "set(attributes[\"alloy.replica\"], \"" + sys.env("HOSTNAME") + "\")",
+          ]
+        }
+
+        metric_statements {
+          context = "datapoint"
+          statements = [
+            "set(attributes[\"alloy_replica\"], \"" + sys.env("HOSTNAME") + "\")",
+          ]
         }
 
         output {
