@@ -205,15 +205,29 @@ locals {
 }
 
 # Shared session/user store so Grafana can run multiple replicas behind one login.
-data "kubectl_file_documents" "grafana_postgres" {
-  content = templatefile("${path.module}/templates/manifests/grafana-postgres.tftpl.yaml", {
-    name      = local.grafana_postgres_name
-    namespace = var.grafana.release_namespace
-  })
+# Keys are static so for_each stays plannable; only the values depend on rendered YAML.
+moved {
+  from = kubectl_manifest.grafana_postgres["/apis/generators.external-secrets.io/v1alpha1/namespaces/infra-monitoring/passwords/grafana-postgres-password"]
+  to   = kubectl_manifest.grafana_postgres["password"]
+}
+
+moved {
+  from = kubectl_manifest.grafana_postgres["/apis/external-secrets.io/v1/namespaces/infra-monitoring/externalsecrets/grafana-postgres"]
+  to   = kubectl_manifest.grafana_postgres["external_secret"]
+}
+
+moved {
+  from = kubectl_manifest.grafana_postgres["/api/v1/namespaces/infra-monitoring/services/grafana-postgres"]
+  to   = kubectl_manifest.grafana_postgres["service"]
+}
+
+moved {
+  from = kubectl_manifest.grafana_postgres["/apis/apps/v1/namespaces/infra-monitoring/statefulsets/grafana-postgres"]
+  to   = kubectl_manifest.grafana_postgres["statefulset"]
 }
 
 resource "kubectl_manifest" "grafana_postgres" {
-  for_each   = var.grafana.enabled ? data.kubectl_file_documents.grafana_postgres.manifests : {}
+  for_each   = var.grafana.enabled ? local.grafana_postgres_manifests : {}
   yaml_body  = each.value
   depends_on = [kubectl_manifest.namespace]
 }
