@@ -333,3 +333,4 @@ kafka:
       effect: NoSchedule
   persistence:
     storageClassName: longhorn
+    size: 100Gi
