@@ -153,7 +153,7 @@ notifications:
         pullRequestComment:
           content: |
             Application {{.app.metadata.name}} is now running new version of deployments manifests.
-            See more here: https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true
+            [See more info here](https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true)
           commentTag: "continuous-delivery/{{.app.metadata.name}}"
         checkRun:
           name: "continuous-delivery/{{.app.metadata.name}}"
@@ -167,7 +167,7 @@ notifications:
             summary: "Application {{.app.metadata.name}} is now running new version of deployments manifests."
             text: |
               Application {{.app.metadata.name}} is now running new version of deployments manifests.
-              See more here: https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true
+              [See more info here](https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true)
     template.app-failed: |
       github:
         repoURLPath: "{{.app.spec.source.repoURL}}"
