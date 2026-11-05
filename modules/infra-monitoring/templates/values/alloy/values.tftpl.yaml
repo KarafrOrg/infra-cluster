@@ -15,6 +15,60 @@ alloy:
         ]
       }
 
+      discovery.kubernetes "services" {
+        role = "service"
+      }
+
+      discovery.relabel "annotated_services" {
+        targets = discovery.kubernetes.services.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scrape"]
+          action        = "keep"
+          regex         = "true"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_path"]
+          action        = "replace"
+          regex         = "(.+)"
+          target_label  = "__metrics_path__"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scheme"]
+          action        = "replace"
+          regex         = "(https?)"
+          target_label  = "__scheme__"
+        }
+
+        rule {
+          source_labels = [
+            "__address__",
+            "__meta_kubernetes_service_annotation_prometheus_io_port",
+          ]
+          action        = "replace"
+          regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+          replacement   = "$1:$2"
+          target_label  = "__address__"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_name"]
+          target_label  = "service"
+        }
+      }
+
+      prometheus.scrape "annotated_services" {
+        targets    = discovery.relabel.annotated_services.output
+        forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
+      }
+
       otelcol.receiver.prometheus "kubernetes" {
         output {
           metrics = [
@@ -385,6 +439,9 @@ alloy:
           statements = [
             "set(resource.attributes[\"service.name\"], attributes[\"app\"]) where resource.attributes[\"service.name\"] == nil and attributes[\"app\"] != nil",
             "set(resource.attributes[\"service.name\"], attributes[\"container\"]) where resource.attributes[\"service.name\"] == nil and attributes[\"container\"] != nil",
+            "set(resource.attributes[\"k8s.namespace.name\"], attributes[\"namespace\"]) where resource.attributes[\"k8s.namespace.name\"] == nil and attributes[\"namespace\"] != nil",
+            "set(resource.attributes[\"k8s.pod.name\"], attributes[\"pod\"]) where resource.attributes[\"k8s.pod.name\"] == nil and attributes[\"pod\"] != nil",
+            "set(resource.attributes[\"k8s.container.name\"], attributes[\"container\"]) where resource.attributes[\"k8s.container.name\"] == nil and attributes[\"container\"] != nil",
           ]
         }
 
@@ -396,6 +453,11 @@ alloy:
       }
 
   storagePath: /var/lib/alloy
+
+  mounts:
+    extra:
+      - name: alloy-storage
+        mountPath: /var/lib/alloy
 
   resources:
     requests:
@@ -431,10 +493,16 @@ controller:
       operator: Exists
       effect: NoSchedule
 
-  volumes:
-    extra:
-      - name: alloy-storage
-        emptyDir: { }
+  volumeClaimTemplates:
+    - metadata:
+        name: alloy-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: longhorn
+        resources:
+          requests:
+            storage: 10Gi
 
   affinity:
     podAntiAffinity:

@@ -4,6 +4,9 @@
 mimir:
   structuredConfig:
     multitenancy_enabled: false
+    distributor:
+      # Allow Kafka quorum elections to complete before rejecting metric writes.
+      remote_timeout: 15s
     limits:
       # Span-metric exemplars link metrics to traces in Grafana.
       max_global_exemplars_per_user: 100000
@@ -325,7 +328,8 @@ smoke_test:
       effect: NoSchedule
 
 kafka:
-  replicas: 2
+  replicas: 3
+  logRetentionHours: 3
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:

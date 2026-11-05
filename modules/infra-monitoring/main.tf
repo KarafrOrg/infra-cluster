@@ -123,7 +123,9 @@ resource "helm_release" "alloy" {
   wait             = true
   cleanup_on_fail  = true
   atomic           = true
-  namespace        = var.alloy.release_namespace
+  # Adding Alloy's persistent storage changes the StatefulSet's immutable claim templates.
+  force_update = true
+  namespace    = var.alloy.release_namespace
 
   depends_on = [
     helm_release.mimir,
