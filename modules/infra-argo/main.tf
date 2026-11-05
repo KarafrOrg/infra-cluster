@@ -70,6 +70,42 @@ resource "kubectl_manifest" "argocd_github_repo_creds" {
   depends_on = [helm_release.argo_cd]
 }
 
+resource "kubectl_manifest" "argocd_notifications_secret" {
+  yaml_body = templatefile("${path.module}/templates/manifests/argocd/notifications-external-secret.tftmpl.yaml", {
+    argo_cd_helm_release_namespace           = var.argo_cd_helm_release_namespace,
+    github_app_id_gcp_secret_id              = var.argocd_github_app_id_gcp_secret_id,
+    github_app_installation_id_gcp_secret_id = var.argocd_github_app_installation_id_gcp_secret_id,
+    github_app_private_key_gcp_secret_id     = var.argocd_github_app_private_key_gcp_secret_id,
+  })
+  depends_on = [helm_release.argo_cd]
+}
+
+resource "kubectl_manifest" "argocd_github_webhook" {
+  yaml_body = templatefile("${path.module}/templates/manifests/argocd/github-webhook-external-secret.tftmpl.yaml", {
+    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
+    github_webhook_gcp_secret_id   = var.argocd_github_webhook_gcp_secret_id,
+  })
+  depends_on = [helm_release.argo_cd]
+}
+
+# Public (Cloudflare Tunnel) endpoint for the GitHub webhook only; the UI stays on the private gateway.
+data "kubectl_file_documents" "argocd_webhook_public" {
+  content = templatefile("${path.module}/templates/manifests/argocd/webhook-public-gateway.tftmpl.yaml", {
+    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
+    cloudflare_account_id_secret   = var.gateway_cloudflare_account_id_secret,
+    cloudflare_api_token_secret    = var.gateway_cloudflare_api_token_secret,
+    gateway_class_name             = var.gateway_class_name,
+    replicas                       = var.gateway_tunnel_replicas,
+    webhook_hostname               = var.argocd_webhook_hostname,
+  })
+}
+
+resource "kubectl_manifest" "argocd_webhook_public" {
+  for_each   = data.kubectl_file_documents.argocd_webhook_public.manifests
+  yaml_body  = each.value
+  depends_on = [helm_release.argo_cd]
+}
+
 resource "kubectl_manifest" "argocd_application_set" {
   yaml_body = templatefile("${path.module}/templates/manifests/argocd/application-set.tftmpl.yaml", {
     argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,

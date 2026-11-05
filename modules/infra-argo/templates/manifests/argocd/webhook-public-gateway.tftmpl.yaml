@@ -1,0 +1,102 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudflare-gateway-creds
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gcp-cluster-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: cloudflare-gateway-creds
+    creationPolicy: Owner
+  data:
+    - secretKey: CLOUDFLARE_ACCOUNT_ID
+      remoteRef:
+        key: ${cloudflare_account_id_secret}
+    - secretKey: CLOUDFLARE_API_TOKEN
+      remoteRef:
+        key: ${cloudflare_api_token_secret}
+---
+apiVersion: cloudflare-gateway-controller.io/v1
+kind: CloudflareGatewayParameters
+metadata:
+  name: argocd-webhook
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  secretRef:
+    name: cloudflare-gateway-creds
+  tunnel:
+    patches:
+      - op: add
+        path: /spec/template/spec/tolerations
+        value:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          node-role.kubernetes.io/control-plane: ""
+      - op: add
+        path: /spec/template/spec/topologySpreadConstraints
+        value:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: cloudflared
+                app.kubernetes.io/instance: argocd-webhook
+    replicas:
+%{ for replica in replicas ~}
+      - name: ${replica.name}
+        # Soft zone preference instead of the hard `zone` field, so pods still schedule on nodes without zone labels.
+        affinity:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                    - key: topology.kubernetes.io/zone
+                      operator: In
+                      values:
+                        - ${replica.zone}
+%{ endfor ~}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: argocd-webhook
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  gatewayClassName: ${gateway_class_name}
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+  infrastructure:
+    parametersRef:
+      group: cloudflare-gateway-controller.io
+      kind: CloudflareGatewayParameters
+      name: argocd-webhook
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: argocd-webhook
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  parentRefs:
+    - name: argocd-webhook
+  hostnames:
+    - ${webhook_hostname}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/webhook
+      backendRefs:
+        - name: argocd-server
+          port: 80

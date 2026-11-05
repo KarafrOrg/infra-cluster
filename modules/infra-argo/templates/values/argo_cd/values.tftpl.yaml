@@ -85,6 +85,89 @@ applicationSet:
       cpu: 100m
       memory: 256Mi
 
+notifications:
+  enabled: true
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  # The chart creates an empty secret; the argocd-notifications-secret ExternalSecret merges the GitHub App keys into it.
+  secret:
+    create: true
+
+  notifiers:
+    service.github: |
+      appID: $github-appID
+      installationID: $github-installationID
+      privateKey: $github-privateKey
+
+  # Every application reports its deployment state as a commit status on the synced revision.
+  subscriptions:
+    - recipients:
+        - github
+      triggers:
+        - on-sync-running
+        - on-deployed
+        - on-sync-failed
+        - on-health-degraded
+
+  templates:
+    template.app-sync-running: |
+      github:
+        repoURLPath: "{{.app.spec.source.repoURL}}"
+        revisionPath: "{{.app.status.operationState.syncResult.revision}}"
+        status:
+          state: pending
+          label: "argocd/{{.app.metadata.name}}"
+          targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+    template.app-deployed: |
+      github:
+        repoURLPath: "{{.app.spec.source.repoURL}}"
+        revisionPath: "{{.app.status.operationState.syncResult.revision}}"
+        status:
+          state: success
+          label: "argocd/{{.app.metadata.name}}"
+          targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+    template.app-failed: |
+      github:
+        repoURLPath: "{{.app.spec.source.repoURL}}"
+        revisionPath: "{{.app.status.operationState.syncResult.revision}}"
+        status:
+          state: failure
+          label: "argocd/{{.app.metadata.name}}"
+          targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+
+  triggers:
+    trigger.on-sync-running: |
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Running']
+        send: [app-sync-running]
+        oncePer: app.status.operationState.syncResult.revision
+    trigger.on-deployed: |
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+        send: [app-deployed]
+        oncePer: app.status.operationState.syncResult.revision
+    trigger.on-sync-failed: |
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
+        send: [app-failed]
+        oncePer: app.status.operationState.syncResult.revision
+    trigger.on-health-degraded: |
+      - when: app.status.health.status == 'Degraded'
+        send: [app-failed]
+        oncePer: app.status.operationState.syncResult.revision
+
 redis:
   enabled: false
 

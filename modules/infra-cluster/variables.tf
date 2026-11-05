@@ -39,6 +39,7 @@ variable "argocd" {
     github_sso_client_id_gcp_secret_id       = string,
     github_sso_client_secret_gcp_secret_id   = string,
     github_sso_admin_team                    = optional(string, "argocd-admins"),
+    github_webhook_gcp_secret_id             = optional(string, "github-webhook-karafrorg-argocd"),
   })
 }
 

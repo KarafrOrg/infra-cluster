@@ -46,6 +46,7 @@ module "infra_argo" {
   argocd_github_sso_client_id_gcp_secret_id       = var.argocd.github_sso_client_id_gcp_secret_id
   argocd_github_sso_client_secret_gcp_secret_id   = var.argocd.github_sso_client_secret_gcp_secret_id
   argocd_github_sso_admin_team                    = var.argocd.github_sso_admin_team
+  argocd_github_webhook_gcp_secret_id             = var.argocd.github_webhook_gcp_secret_id
   gateway_class_name                              = var.cloudflare_gateway_controller.gateway_class_name
   gateway_tunnel_replicas                         = var.cloudflare_gateway_controller.tunnel_replicas
   gateway_cloudflare_account_id_secret            = var.cloudflare_gateway_controller.cloudflare_account_id_secret

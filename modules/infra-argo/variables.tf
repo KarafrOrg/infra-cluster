@@ -107,3 +107,15 @@ variable "private_gateway" {
     target_ip = string
   })
 }
+
+variable "argocd_github_webhook_gcp_secret_id" {
+  description = "GCP Secret Manager secret ID holding the GitHub webhook secret Argo CD validates push events with."
+  type        = string
+  default     = "github-webhook-karafrorg-argocd"
+}
+
+variable "argocd_webhook_hostname" {
+  description = "Public hostname GitHub delivers webhooks to (Cloudflare Tunnel, `/api/webhook` only). Keep it outside the Access-protected wildcard."
+  type        = string
+  default     = "argocd-webhook.karafra.net"
+}
