@@ -114,7 +114,6 @@ notifications:
       installationID: $github-installationID
       privateKey: $github-privateKey
 
-  # Every application reports its deployment state as a commit status on the synced revision.
   subscriptions:
     - recipients:
         - github
@@ -133,6 +132,11 @@ notifications:
           state: pending
           label: "argocd/{{.app.metadata.name}}"
           targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+        deployment:
+          state: in_progress
+          environment: "{{.app.spec.destination.namespace}}"
+          environmentURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+          logURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
     template.app-deployed: |
       github:
         repoURLPath: "{{.app.spec.source.repoURL}}"
@@ -141,6 +145,29 @@ notifications:
           state: success
           label: "argocd/{{.app.metadata.name}}"
           targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+        deployment:
+          state: success
+          environment: "{{.app.spec.destination.namespace}}"
+          environmentURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+          logURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+        pullRequestComment:
+          content: |
+            Application {{.app.metadata.name}} is now running new version of deployments manifests.
+            See more here: https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true
+          commentTag: "continuous-delivery/{{.app.metadata.name}}"
+        checkRun:
+          name: "continuous-delivery/{{.app.metadata.name}}"
+          details_url: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true"
+          status: completed
+          conclusion: success
+          started_at: "{{.app.status.operationState.startedAt}}"
+          completed_at: "{{.app.status.operationState.finishedAt}}"
+          output:
+            title: "Deployment of {{.app.metadata.name}} on ArgoCD"
+            summary: "Application {{.app.metadata.name}} is now running new version of deployments manifests."
+            text: |
+              Application {{.app.metadata.name}} is now running new version of deployments manifests.
+              See more here: https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}?operation=true
     template.app-failed: |
       github:
         repoURLPath: "{{.app.spec.source.repoURL}}"
@@ -149,6 +176,11 @@ notifications:
           state: failure
           label: "argocd/{{.app.metadata.name}}"
           targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+        deployment:
+          state: failure
+          environment: "{{.app.spec.destination.namespace}}"
+          environmentURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
+          logURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
 
   triggers:
     trigger.on-sync-running: |
