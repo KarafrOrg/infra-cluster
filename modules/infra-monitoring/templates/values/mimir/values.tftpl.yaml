@@ -325,6 +325,7 @@ smoke_test:
       effect: NoSchedule
 
 kafka:
+  replicas: 2
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
@@ -332,5 +333,6 @@ kafka:
       operator: Exists
       effect: NoSchedule
   persistence:
+    enabled: true
     storageClassName: longhorn
     size: 100Gi
