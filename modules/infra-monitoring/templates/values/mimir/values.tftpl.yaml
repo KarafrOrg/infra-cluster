@@ -7,11 +7,18 @@ mimir:
     distributor:
       # Allow Kafka quorum elections to complete before rejecting metric writes.
       remote_timeout: 15s
+    ingest_storage:
+      kafka:
+        # One partition per ingester zone is enough here; the chart default of 100 (x3 replicas) overwhelms the brokers.
+        auto_create_topic_default_partitions: 3
     limits:
       # Span-metric exemplars link metrics to traces in Grafana.
       max_global_exemplars_per_user: 100000
       # Span metrics from Tempo/Beyla make up most series; 150k default was exceeded.
       max_global_series_per_user: 300000
+      # Default 10k/s is below what ~300k series at a 60s scrape interval plus backlog replays push.
+      ingestion_rate: 50000
+      ingestion_burst_size: 1000000
 
 alertmanager:
   nodeSelector:
@@ -330,6 +337,24 @@ smoke_test:
 kafka:
   replicas: 3
   logRetentionHours: 3
+  # Mimir auto-creates its ingest topic with the broker default; with RF=1 losing one broker's volume
+  # wipes the topic and leaves ingesters pointing at offsets that no longer exist.
+  env:
+    - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+      value: "3"
+    - name: KAFKA_MIN_INSYNC_REPLICAS
+      value: "2"
+    - name: KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS
+      value: "3"
+    # Defaults (1s election / 2s fetch) cause constant leader elections on Longhorn-backed brokers.
+    - name: KAFKA_CONTROLLER_QUORUM_REQUEST_TIMEOUT_MS
+      value: "5000"
+    - name: KAFKA_CONTROLLER_QUORUM_FETCH_TIMEOUT_MS
+      value: "10000"
+    - name: KAFKA_CONTROLLER_QUORUM_ELECTION_TIMEOUT_MS
+      value: "5000"
+    - name: KAFKA_CONTROLLER_QUORUM_ELECTION_BACKOFF_MAX_MS
+      value: "5000"
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:

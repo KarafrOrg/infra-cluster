@@ -175,6 +175,7 @@ resource "helm_release" "grafana" {
       alloy_release_name     = var.alloy.release_name
       alloy_namespace        = var.alloy.release_namespace
       github_oauth_enabled   = var.grafana.github_oauth.enabled
+      carto_enabled          = var.grafana.carto.enabled
       github_org             = var.grafana.github_oauth.org
       github_admin_team      = var.grafana.github_oauth.admin_team
       github_viewer_team     = var.grafana.github_oauth.viewer_team
@@ -198,6 +199,7 @@ resource "helm_release" "grafana" {
     helm_release.tempo,
     helm_release.pyroscope,
     kubectl_manifest.grafana_github_oauth,
+    kubectl_manifest.grafana_carto,
     kubectl_manifest.grafana_postgres,
   ]
 }
@@ -241,6 +243,16 @@ resource "kubectl_manifest" "grafana_github_oauth" {
     secret_store_name           = var.grafana.github_oauth.secret_store_name
     client_id_gcp_secret_id     = var.grafana.github_oauth.client_id_gcp_secret_id
     client_secret_gcp_secret_id = var.grafana.github_oauth.client_secret_gcp_secret_id
+  })
+  depends_on = [kubectl_manifest.namespace]
+}
+
+resource "kubectl_manifest" "grafana_carto" {
+  count = var.grafana.enabled && var.grafana.carto.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/grafana-carto-external-secret.tftpl.yaml", {
+    namespace             = var.grafana.release_namespace
+    secret_store_name     = var.grafana.carto.secret_store_name
+    api_key_gcp_secret_id = var.grafana.carto.api_key_gcp_secret_id
   })
   depends_on = [kubectl_manifest.namespace]
 }

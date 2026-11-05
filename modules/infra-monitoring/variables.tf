@@ -82,6 +82,11 @@ variable "grafana" {
       client_secret_gcp_secret_id = optional(string, "grafana-github-oauth-client-secret")
       secret_store_name           = optional(string, "gcp-cluster-secret-store")
     }), {})
+    carto = optional(object({
+      enabled               = optional(bool, true)
+      api_key_gcp_secret_id = optional(string, "grafana-carto-api-key")
+      secret_store_name     = optional(string, "gcp-cluster-secret-store")
+    }), {})
   })
   default = {}
 }

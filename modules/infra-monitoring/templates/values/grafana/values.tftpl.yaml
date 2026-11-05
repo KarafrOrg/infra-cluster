@@ -18,6 +18,14 @@ tolerations:
 persistence:
   enabled: false
 
+# Loads dashboards from ConfigMaps labelled grafana_dashboard=1 in any namespace.
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: ALL
+
 env:
   GF_SERVER_ROOT_URL: ${root_url}
   # Both hostnames are routed to Grafana; without this Grafana redirects any non-root_url Host to root_url.
@@ -36,6 +44,14 @@ envValueFrom:
     secretKeyRef:
       name: grafana-github-oauth
       key: clientSecret
+%{ endif ~}
+%{ if carto_enabled ~}
+  # Optional so Grafana still starts (with the CARTO watermark) before the secret has synced.
+  GF_GEOMAP_DEFAULT_BASELAYER_CONFIG:
+    secretKeyRef:
+      name: grafana-carto
+      key: baselayerConfig
+      optional: true
 %{ endif ~}
 
 grafana.ini:
