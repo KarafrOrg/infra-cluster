@@ -98,3 +98,12 @@ variable "faro_host" {
   description = "In-cluster DNS name of the Faro receiver (Alloy) the Argo CD frontend proxy forwards browser telemetry to."
   type        = string
 }
+
+variable "private_gateway" {
+  description = "Private (WARP-only) gateway the service is published through."
+  type = object({
+    name      = string
+    namespace = string
+    target_ip = string
+  })
+}

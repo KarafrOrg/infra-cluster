@@ -1,0 +1,89 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: ${gateway_class_name}
+spec:
+  controllerName: istio.io/gateway-controller
+  description: Private ingress reached via Cloudflare Tunnel CIDR route
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${gateway_name}-config
+  namespace: ${istio_namespace}
+data:
+  # Pinned ClusterIP so the tunnel CIDR route and the DNS records have a stable target. No LoadBalancer, no public address.
+  service: |
+    spec:
+      type: ClusterIP
+      clusterIP: ${cluster_ip}
+  deployment: |
+    spec:
+      replicas: 2
+      template:
+        spec:
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  gateway.networking.k8s.io/gateway-name: ${gateway_name}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ${gateway_name}
+  namespace: ${istio_namespace}
+  labels:
+    dns.karafra.net/private: "true"
+  annotations:
+    # external-dns reads the target from the Gateway, not the HTTPRoute. The public record points at loopback so
+    # clients without WARP fail instantly; WARP clients get ${cluster_ip} from a Cloudflare Gateway DNS override.
+    external-dns.alpha.kubernetes.io/target: ${public_dns_target}
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  gatewayClassName: ${gateway_class_name}
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: ${gateway_name}-config
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      hostname: '*.${ingress_domain}'
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https
+      port: 443
+      protocol: HTTPS
+      hostname: '*.${ingress_domain}'
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ''
+            kind: Secret
+            name: ${gateway_name}-tls
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ${gateway_name}-https-redirect
+  namespace: ${istio_namespace}
+spec:
+  parentRefs:
+    - name: ${gateway_name}
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

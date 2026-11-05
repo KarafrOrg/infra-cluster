@@ -30,43 +30,19 @@ resource "kubectl_manifest" "argocd_certificate" {
   depends_on = [helm_release.argo_cd]
 }
 
-resource "kubectl_manifest" "argocd_gateway_external_secret" {
-  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gateway-external-secret.tftmpl.yaml", {
-    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
-    cloudflare_account_id_secret   = var.gateway_cloudflare_account_id_secret,
-    cloudflare_api_token_secret    = var.gateway_cloudflare_api_token_secret,
-  })
-  depends_on = [helm_release.argo_cd]
-}
-
-resource "kubectl_manifest" "argocd_gateway_parameters" {
-  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gateway-parameters.tftmpl.yaml", {
-    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
-    replicas                       = var.gateway_tunnel_replicas,
-  })
-  depends_on = [kubectl_manifest.argocd_gateway_external_secret]
-}
-
-resource "kubectl_manifest" "argocd_gateway" {
-  yaml_body = templatefile("${path.module}/templates/manifests/gateway_api/gateway.tftmpl.yaml", {
-    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
-    gateway_class_name             = var.gateway_class_name,
-  })
-  depends_on = [kubectl_manifest.argocd_gateway_parameters]
-}
-
 # Envoy (Faro injection) between the existing Argo CD Gateway and argocd-server.
 module "argocd_published_service" {
   source = "../published-service"
 
-  name           = "argocd"
-  namespace      = var.argo_cd_helm_release_namespace
-  hostnames      = [var.argocd_ingress_domain]
-  upstream_host  = "argocd-server.${var.argo_cd_helm_release_namespace}.svc.cluster.local"
-  faro_host      = var.faro_host
-  create_gateway = false
+  name            = "argocd"
+  namespace       = var.argo_cd_helm_release_namespace
+  hostnames       = [var.argocd_ingress_domain]
+  upstream_host   = "argocd-server.${var.argo_cd_helm_release_namespace}.svc.cluster.local"
+  faro_host       = var.faro_host
+  create_gateway  = false
+  private_gateway = var.private_gateway
 
-  depends_on = [kubectl_manifest.argocd_gateway]
+  depends_on = [helm_release.argo_cd]
 }
 
 moved {

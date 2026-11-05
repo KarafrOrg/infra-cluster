@@ -52,6 +52,7 @@ module "infra_argo" {
   gateway_cloudflare_api_token_secret             = var.cloudflare_gateway_controller.cloudflare_api_token_secret
   cluster_issuer_name                             = var.cert_manager.cluster_issuer_name
   faro_host                                       = "${var.alloy.release_name}.${var.alloy.release_namespace}.svc.cluster.local"
+  private_gateway                                 = local.private_gateway
   // endregion
   depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
 }
@@ -108,6 +109,7 @@ module "infra_monitoring" {
   gateway_tunnel_replicas              = var.cloudflare_gateway_controller.tunnel_replicas
   gateway_cloudflare_account_id_secret = var.cloudflare_gateway_controller.cloudflare_account_id_secret
   gateway_cloudflare_api_token_secret  = var.cloudflare_gateway_controller.cloudflare_api_token_secret
+  private_gateway                      = local.private_gateway
   // endregion
   depends_on = [module.infra_secrets, module.infra_network]
 }
@@ -117,4 +119,12 @@ module "infra_storage" {
   // region Storage-related Helm release configurations
   longhorn = var.longhorn
   // endregion
+}
+
+locals {
+  private_gateway = {
+    name      = var.istio.private_gateway_name
+    namespace = var.istio.release_namespace
+    target_ip = var.istio.private_gateway_cluster_ip
+  }
 }

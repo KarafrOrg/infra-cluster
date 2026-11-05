@@ -5,7 +5,7 @@ locals {
 }
 
 resource "kubectl_manifest" "gateway_external_secret" {
-  count = var.create_gateway ? 1 : 0
+  count = var.create_gateway && var.private_gateway == null ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/gateway-external-secret.tftpl.yaml", {
     name                         = var.name
     namespace                    = var.namespace
@@ -15,7 +15,7 @@ resource "kubectl_manifest" "gateway_external_secret" {
 }
 
 resource "kubectl_manifest" "gateway_parameters" {
-  count = var.create_gateway ? 1 : 0
+  count = var.create_gateway && var.private_gateway == null ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/gateway-parameters.tftpl.yaml", {
     name      = var.name
     namespace = var.namespace
@@ -25,7 +25,7 @@ resource "kubectl_manifest" "gateway_parameters" {
 }
 
 resource "kubectl_manifest" "gateway" {
-  count = var.create_gateway ? 1 : 0
+  count = var.create_gateway && var.private_gateway == null ? 1 : 0
   yaml_body = templatefile("${path.module}/templates/gateway.tftpl.yaml", {
     name               = var.name
     namespace          = var.namespace
@@ -70,6 +70,7 @@ resource "kubectl_manifest" "httproute" {
     name         = var.name
     namespace    = var.namespace
     gateway_name = local.gateway_name
+    private      = var.private_gateway
     hostnames    = var.hostnames
     proxy_name   = local.proxy_name
   })

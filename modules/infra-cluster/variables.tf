@@ -124,7 +124,18 @@ variable "istio" {
     tracing_service   = optional(string, "infra-monitoring-tempo.infra-monitoring.svc.cluster.local")
     tracing_port      = optional(number, 4317)
     ingress_domain    = string
-    cert_issuer_name  = optional(string, "letsencrypt-dns")
+    cert_issuer_name  = optional(string, "letsencrypt-prod")
+    # Private ingress: a ClusterIP-only Gateway reachable solely through a Cloudflare Tunnel CIDR route (WARP clients).
+    private_gateway_class_name        = optional(string, "cloudflare-private")
+    private_gateway_name              = optional(string, "private-ingress-gateway")
+    private_gateway_cluster_ip        = optional(string, "10.96.0.200")
+    private_gateway_public_dns_target = optional(string, "127.0.0.1")
+    private_tunnel = optional(object({
+      enabled             = optional(bool, true)
+      replicas            = optional(number, 2)
+      image               = optional(string, "cloudflare/cloudflared:2026.10.7")
+      token_gcp_secret_id = optional(string, "cloudflare-tunnel-token-private-network")
+    }), {})
   })
 }
 

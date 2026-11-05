@@ -48,8 +48,8 @@ cloudflare_gateway_controller = {
 }
 
 istio = {
-  enabled        = false
-  ingress_domain = "karafra.net"
+  enabled        = true
+  ingress_domain = "kubernetes.karafra.net"
 }
 
 metrics_server = { enabled = true }

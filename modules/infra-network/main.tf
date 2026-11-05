@@ -213,29 +213,61 @@ resource "helm_release" "istio_gateway" {
   depends_on       = [helm_release.istio_istiod]
 }
 
-resource "kubectl_manifest" "istio_ingress_gateway_certificate" {
+resource "kubectl_manifest" "istio_private_gateway_certificate" {
   count = var.istio.enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/templates/manifests/istio/public-ingress-gateway-certificate.tftmpl.yaml", {
+  yaml_body = templatefile("${path.module}/templates/manifests/istio/private-ingress-gateway-certificate.tftmpl.yaml", {
     istio_namespace  = var.istio.release_namespace
+    gateway_name     = var.istio.private_gateway_name
     ingress_domain   = var.istio.ingress_domain
     cert_issuer_name = var.istio.cert_issuer_name
   })
   depends_on = [helm_release.istio_istiod]
 }
 
-resource "kubectl_manifest" "istio_public_ingress_gateway" {
+# GatewayClass, service/deployment overlay and Gateway of the private ingress (ClusterIP only, no public address).
+data "kubectl_file_documents" "istio_private_gateway" {
   count = var.istio.enabled ? 1 : 0
-  yaml_body = templatefile("${path.module}/templates/manifests/istio/public-ingress-gateway.tftmpl.yaml", {
-    istio_namespace = var.istio.release_namespace
-    ingress_domain  = var.istio.ingress_domain
+  content = templatefile("${path.module}/templates/manifests/istio/private-ingress-gateway.tftmpl.yaml", {
+    istio_namespace    = var.istio.release_namespace
+    gateway_class_name = var.istio.private_gateway_class_name
+    gateway_name       = var.istio.private_gateway_name
+    cluster_ip         = var.istio.private_gateway_cluster_ip
+    public_dns_target  = var.istio.private_gateway_public_dns_target
+    ingress_domain     = var.istio.ingress_domain
   })
+}
+
+resource "kubectl_manifest" "istio_private_gateway" {
+  for_each  = var.istio.enabled ? data.kubectl_file_documents.istio_private_gateway[0].manifests : {}
+  yaml_body = each.value
   depends_on = [
     helm_release.istio_gateway,
-    kubectl_manifest.istio_ingress_gateway_certificate,
+    kubectl_manifest.istio_private_gateway_certificate,
+  ]
+}
+// endregion
+
+// region Private tunnel (cloudflared connector serving the Cloudflare Tunnel CIDR route)
+data "kubectl_file_documents" "private_tunnel" {
+  count = var.istio.enabled && var.istio.private_tunnel.enabled ? 1 : 0
+  content = templatefile("${path.module}/templates/manifests/private_tunnel/cloudflared.tftmpl.yaml", {
+    name                = "cloudflared-private"
+    namespace           = var.istio.release_namespace
+    replicas            = var.istio.private_tunnel.replicas
+    image               = var.istio.private_tunnel.image
+    token_gcp_secret_id = var.istio.private_tunnel.token_gcp_secret_id
+  })
+}
+
+resource "kubectl_manifest" "private_tunnel" {
+  for_each  = var.istio.enabled && var.istio.private_tunnel.enabled ? data.kubectl_file_documents.private_tunnel[0].manifests : {}
+  yaml_body = each.value
+  depends_on = [
+    kubectl_manifest.istio_namespace,
+    kubectl_manifest.cloudflare_gateway_namespace,
   ]
 }
 
-// endregion
 
 // region Cloudflare Gateway Controller (matheuscscp/cloudflare-gateway-controller)
 resource "kubectl_manifest" "cloudflare_gateway_controller_external_secret" {

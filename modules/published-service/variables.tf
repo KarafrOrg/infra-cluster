@@ -100,3 +100,13 @@ variable "cloudflare_api_token_secret" {
   type        = string
   default     = null
 }
+
+variable "private_gateway" {
+  description = "Publish through the private (WARP-only) gateway instead of a Cloudflare Tunnel gateway. DNS-only records pointing at `target_ip` are created by external-dns; `create_gateway` is ignored."
+  type = object({
+    name      = string
+    namespace = string
+    target_ip = string
+  })
+  default = null
+}

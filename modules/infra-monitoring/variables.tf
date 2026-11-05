@@ -144,3 +144,12 @@ variable "gateway_cloudflare_api_token_secret" {
   description = "GCP Secret Manager secret ID holding the Cloudflare API token for the dedicated Gateways."
   type        = string
 }
+
+variable "private_gateway" {
+  description = "Private (WARP-only) gateway the service is published through."
+  type = object({
+    name      = string
+    namespace = string
+    target_ip = string
+  })
+}

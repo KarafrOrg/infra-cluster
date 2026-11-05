@@ -312,6 +312,8 @@ module "grafana_published_service" {
   upstream_host = "${var.grafana.release_name}.${var.grafana.release_namespace}.svc.cluster.local"
   faro_host     = "${var.alloy.release_name}.${var.alloy.release_namespace}.svc.cluster.local"
 
+  private_gateway = var.private_gateway
+
   gateway_class_name           = var.gateway_class_name
   tunnel_replicas              = var.gateway_tunnel_replicas
   cloudflare_account_id_secret = var.gateway_cloudflare_account_id_secret

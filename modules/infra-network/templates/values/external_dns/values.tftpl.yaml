@@ -28,6 +28,12 @@ policy: sync
 sources:
   - service
   - ingress
+  - gateway-httproute
+
+extraArgs:
+  # Only routes labelled for the private gateway get DNS-only records pointing at its private address; routes on the
+  # Cloudflare Tunnel gateways keep their CNAMEs managed by the gateway controller.
+  - --gateway-label-filter=dns.karafra.net/private=true
 
 resources:
   requests:
