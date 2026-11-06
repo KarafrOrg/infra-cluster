@@ -15,10 +15,10 @@ resource "helm_release" "cert_manager" {
     file("${path.module}/templates/values/cert_manager/values.yaml")
   ]
 
-  set {
+  set = [{
     name  = "crds.enabled"
     value = "true"
-  }
+  }]
 }
 
 resource "kubectl_manifest" "cloudflare_api_token_external_secret" {
