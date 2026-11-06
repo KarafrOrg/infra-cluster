@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring
+  name: argocd-monitoring
   namespace: ${argo_cd_helm_release_namespace}
 spec:
   project: default
