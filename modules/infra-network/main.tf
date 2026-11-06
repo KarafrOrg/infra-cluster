@@ -225,9 +225,14 @@ resource "kubectl_manifest" "istio_private_gateway_certificate" {
 }
 
 # GatewayClass, service/deployment overlay and Gateway of the private ingress (ClusterIP only, no public address).
-data "kubectl_file_documents" "istio_private_gateway" {
-  count = var.istio.enabled ? 1 : 0
-  content = templatefile("${path.module}/templates/manifests/istio/private-ingress-gateway.tftmpl.yaml", {
+resource "kubectl_manifest" "istio_private_gateway" {
+  for_each = var.istio.enabled ? {
+    "/apis/gateway.networking.k8s.io/v1/gatewayclasses/${var.istio.private_gateway_class_name}"                                                = "private-ingress-gateway-class"
+    "/api/v1/namespaces/${var.istio.release_namespace}/configmaps/${var.istio.private_gateway_name}-config"                                    = "private-ingress-gateway-config"
+    "/apis/gateway.networking.k8s.io/v1/namespaces/${var.istio.release_namespace}/gateways/${var.istio.private_gateway_name}"                  = "private-ingress-gateway"
+    "/apis/gateway.networking.k8s.io/v1/namespaces/${var.istio.release_namespace}/httproutes/${var.istio.private_gateway_name}-https-redirect" = "private-ingress-gateway-https-redirect"
+  } : {}
+  yaml_body = templatefile("${path.module}/templates/manifests/istio/${each.value}.tftmpl.yaml", {
     istio_namespace    = var.istio.release_namespace
     gateway_class_name = var.istio.private_gateway_class_name
     gateway_name       = var.istio.private_gateway_name
@@ -235,11 +240,6 @@ data "kubectl_file_documents" "istio_private_gateway" {
     public_dns_target  = var.istio.private_gateway_public_dns_target
     ingress_domain     = var.istio.ingress_domain
   })
-}
-
-resource "kubectl_manifest" "istio_private_gateway" {
-  for_each  = var.istio.enabled ? data.kubectl_file_documents.istio_private_gateway[0].manifests : {}
-  yaml_body = each.value
   depends_on = [
     helm_release.istio_gateway,
     kubectl_manifest.istio_private_gateway_certificate,

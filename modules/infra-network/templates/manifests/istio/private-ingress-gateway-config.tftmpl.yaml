@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${gateway_name}-config
+  namespace: ${istio_namespace}
+data:
+  # Pinned ClusterIP so the tunnel CIDR route and the DNS records have a stable target. No LoadBalancer, no public address.
+  service: |
+    spec:
+      type: ClusterIP
+      clusterIP: ${cluster_ip}
+  deployment: |
+    spec:
+      replicas: 2
+      template:
+        spec:
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  gateway.networking.k8s.io/gateway-name: ${gateway_name}

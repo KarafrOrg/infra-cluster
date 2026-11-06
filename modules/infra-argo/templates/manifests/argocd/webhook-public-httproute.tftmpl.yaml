@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: argocd-webhook
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  parentRefs:
+    - name: argocd-webhook
+  hostnames:
+    - ${webhook_hostname}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: ${istio_gateway_name}-istio
+          namespace: ${istio_gateway_namespace}
+          port: 8081

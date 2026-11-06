@@ -1,36 +1,4 @@
 apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: ${gateway_class_name}
-spec:
-  controllerName: istio.io/gateway-controller
-  description: Private ingress reached via Cloudflare Tunnel CIDR route
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ${gateway_name}-config
-  namespace: ${istio_namespace}
-data:
-  # Pinned ClusterIP so the tunnel CIDR route and the DNS records have a stable target. No LoadBalancer, no public address.
-  service: |
-    spec:
-      type: ClusterIP
-      clusterIP: ${cluster_ip}
-  deployment: |
-    spec:
-      replicas: 2
-      template:
-        spec:
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: ScheduleAnyway
-              labelSelector:
-                matchLabels:
-                  gateway.networking.k8s.io/gateway-name: ${gateway_name}
----
-apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: ${gateway_name}
@@ -71,19 +39,9 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: ${gateway_name}-https-redirect
-  namespace: ${istio_namespace}
-spec:
-  parentRefs:
-    - name: ${gateway_name}
-      sectionName: http
-  rules:
-    - filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
+    - name: webhook
+      port: 8081
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All

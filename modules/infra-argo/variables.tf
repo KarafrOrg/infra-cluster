@@ -115,7 +115,7 @@ variable "argocd_github_webhook_gcp_secret_id" {
 }
 
 variable "argocd_webhook_hostname" {
-  description = "Public hostname GitHub delivers webhooks to (Cloudflare Tunnel, `/api/webhook` only). Keep it outside the Access-protected wildcard."
+  description = "Public hostname GitHub delivers webhooks to (Cloudflare Tunnel, `/` rewrites to `/api/webhook`). Keep it outside the Access-protected wildcard."
   type        = string
   default     = "argocd-webhook.karafra.net"
 }

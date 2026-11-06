@@ -89,20 +89,25 @@ resource "kubectl_manifest" "argocd_github_webhook" {
 }
 
 # Public (Cloudflare Tunnel) endpoint for the GitHub webhook only; the UI stays on the private gateway.
-data "kubectl_file_documents" "argocd_webhook_public" {
-  content = templatefile("${path.module}/templates/manifests/argocd/webhook-public-gateway.tftmpl.yaml", {
-    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,
-    cloudflare_account_id_secret   = var.gateway_cloudflare_account_id_secret,
-    cloudflare_api_token_secret    = var.gateway_cloudflare_api_token_secret,
-    gateway_class_name             = var.gateway_class_name,
-    replicas                       = var.gateway_tunnel_replicas,
-    webhook_hostname               = var.argocd_webhook_hostname,
-  })
-}
-
 resource "kubectl_manifest" "argocd_webhook_public" {
-  for_each   = data.kubectl_file_documents.argocd_webhook_public.manifests
-  yaml_body  = each.value
+  for_each = {
+    "/apis/external-secrets.io/v1/namespaces/${var.argo_cd_helm_release_namespace}/externalsecrets/cloudflare-gateway-creds"                  = "webhook-cloudflare-external-secret"
+    "/apis/cloudflare-gateway-controller.io/v1/namespaces/${var.argo_cd_helm_release_namespace}/cloudflaregatewayparameterses/argocd-webhook" = "webhook-cloudflare-gateway-parameters"
+    "/apis/gateway.networking.k8s.io/v1/namespaces/${var.argo_cd_helm_release_namespace}/gateways/argocd-webhook"                             = "webhook-public-gateway"
+    "/apis/gateway.networking.k8s.io/v1/namespaces/${var.argo_cd_helm_release_namespace}/httproutes/argocd-webhook"                           = "webhook-public-httproute"
+    "/apis/gateway.networking.k8s.io/v1beta1/namespaces/${var.private_gateway.namespace}/referencegrants/argocd-webhook-gateway"              = "webhook-istio-reference-grant"
+    "/apis/gateway.networking.k8s.io/v1/namespaces/${var.argo_cd_helm_release_namespace}/httproutes/argocd-webhook-istio"                     = "webhook-istio-httproute"
+  }
+  yaml_body = templatefile("${path.module}/templates/manifests/argocd/${each.value}.tftmpl.yaml", {
+    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace
+    cloudflare_account_id_secret   = var.gateway_cloudflare_account_id_secret
+    cloudflare_api_token_secret    = var.gateway_cloudflare_api_token_secret
+    gateway_class_name             = var.gateway_class_name
+    replicas                       = var.gateway_tunnel_replicas
+    webhook_hostname               = var.argocd_webhook_hostname
+    istio_gateway_name             = var.private_gateway.name
+    istio_gateway_namespace        = var.private_gateway.namespace
+  })
   depends_on = [helm_release.argo_cd]
 }
 
