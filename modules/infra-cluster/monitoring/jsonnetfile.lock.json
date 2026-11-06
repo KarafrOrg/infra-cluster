@@ -60,6 +60,16 @@
       },
       "version": "4d7f8cb24d613430799f9d56809cc6964f35cea9",
       "sum": "hOrwkOx34tOXqoDVnwuI/Uf/dr9HFFSPWpDPOvnEGrk="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubernetes-monitoring/kubernetes-mixin.git",
+          "subdir": ""
+        }
+      },
+      "version": "909cdb0f39b735c8da772f41e02c1be4317418f4",
+      "sum": "JOhiNzeqhGtNSdwKUqp1/h/V1DBdJZcyF7Ui6w3cPUg="
     }
   ],
   "legacyImports": false

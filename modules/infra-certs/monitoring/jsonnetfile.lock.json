@@ -24,6 +24,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/imusmanmalik/cert-manager-mixin.git",
+          "subdir": ""
+        }
+      },
+      "version": "a5f74ad04be4ee8fc007a10a918b3c48154c7e55",
+      "sum": "i1fly+j1O7FetdsEgu8hf5cbVKiOKS5523UYLaoZCtE="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/docsonnet.git",
           "subdir": "doc-util"
         }
