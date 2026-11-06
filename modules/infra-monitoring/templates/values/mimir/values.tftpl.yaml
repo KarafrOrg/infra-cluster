@@ -12,6 +12,7 @@ mimir:
         # One partition per ingester zone is enough here; the chart default of 100 (x3 replicas) overwhelms the brokers.
         auto_create_topic_default_partitions: 3
     limits:
+      compactor_blocks_retention_period: 30d
       # Span-metric exemplars link metrics to traces in Grafana.
       max_global_exemplars_per_user: 100000
       # Span metrics from Tempo/Beyla make up most series; 150k default was exceeded.

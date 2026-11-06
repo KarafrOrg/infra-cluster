@@ -181,8 +181,7 @@ compactor:
   replicas: 1
   config:
     compaction:
-      # Keep a week of traces.
-      block_retention: 168h
+      block_retention: 720h
   resources:
     requests:
       cpu: 100m
