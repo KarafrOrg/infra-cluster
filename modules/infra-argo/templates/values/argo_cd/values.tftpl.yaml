@@ -16,6 +16,8 @@ configs:
     server.insecure: true
     otlp.address: ${otlp_address}
     otlp.insecure: "true"
+    controller.repo.server.timeout.seconds: "300"
+    server.repo.server.timeout.seconds: "300"
 
   cm:
     admin.enabled: "false"
@@ -92,6 +94,10 @@ controller:
 repoServer:
   replicas: 2
 
+  env:
+    - name: ARGOCD_EXEC_TIMEOUT
+      value: 5m
+
   initContainers:
     - name: install-jsonnet-tools
       image: golang:1.24.2-alpine3.21
@@ -111,6 +117,8 @@ repoServer:
         - /var/run/argocd/argocd-cmp-server
       image: quay.io/argoproj/argocd:v3.5.7
       env:
+        - name: ARGOCD_EXEC_TIMEOUT
+          value: 5m
         - name: PATH
           value: /cmp-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       securityContext:
