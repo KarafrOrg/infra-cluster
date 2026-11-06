@@ -593,7 +593,7 @@ alloy:
 service:
   clusterIP: 10.101.101.141
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: talos-logs.internal.karafra.net
+    external-dns.alpha.kubernetes.io/hostname: otelcol.internal.karafra.net
     external-dns.alpha.kubernetes.io/ttl: "60"
 
 controller:
