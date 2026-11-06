@@ -248,19 +248,23 @@ resource "kubectl_manifest" "istio_private_gateway" {
 // endregion
 
 // region Private tunnel (cloudflared connector serving the Cloudflare Tunnel CIDR route)
-data "kubectl_file_documents" "private_tunnel" {
-  count = var.istio.enabled && var.istio.private_tunnel.enabled ? 1 : 0
-  content = templatefile("${path.module}/templates/manifests/private_tunnel/cloudflared.tftmpl.yaml", {
-    name                = "cloudflared-private"
+locals {
+  private_tunnel_name = "cloudflared-private"
+  private_tunnel_documents = split("\n---\n", templatefile("${path.module}/templates/manifests/private_tunnel/cloudflared.tftmpl.yaml", {
+    name                = local.private_tunnel_name
     namespace           = var.istio.release_namespace
     replicas            = var.istio.private_tunnel.replicas
     image               = var.istio.private_tunnel.image
     token_gcp_secret_id = var.istio.private_tunnel.token_gcp_secret_id
-  })
+  }))
+  private_tunnel_manifests = var.istio.enabled && var.istio.private_tunnel.enabled ? {
+    "/apis/external-secrets.io/v1/namespaces/${var.istio.release_namespace}/externalsecrets/${local.private_tunnel_name}" = local.private_tunnel_documents[0]
+    "/apis/apps/v1/namespaces/${var.istio.release_namespace}/deployments/${local.private_tunnel_name}"                    = local.private_tunnel_documents[1]
+  } : {}
 }
 
 resource "kubectl_manifest" "private_tunnel" {
-  for_each  = var.istio.enabled && var.istio.private_tunnel.enabled ? data.kubectl_file_documents.private_tunnel[0].manifests : {}
+  for_each  = local.private_tunnel_manifests
   yaml_body = each.value
   depends_on = [
     kubectl_manifest.istio_namespace,
