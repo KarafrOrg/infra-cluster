@@ -1,4 +1,7 @@
 alloy:
+  # otelcol.receiver.tcplog is experimental.
+  stabilityLevel: experimental
+
   clustering:
     enabled: true
 
@@ -66,6 +69,57 @@ alloy:
 
       prometheus.scrape "annotated_services" {
         targets    = discovery.relabel.annotated_services.output
+        forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
+      }
+
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      discovery.relabel "kubelet" {
+        targets = discovery.kubernetes.nodes.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      prometheus.scrape "kubelet" {
+        targets         = discovery.relabel.kubelet.output
+        job_name        = "kubelet"
+        scheme          = "https"
+        metrics_path    = "/metrics"
+        scrape_interval = "30s"
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+        tls_config {
+          insecure_skip_verify = true
+        }
+
+        clustering {
+          enabled = true
+        }
+
+        forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
+      }
+
+      prometheus.scrape "cadvisor" {
+        targets         = discovery.relabel.kubelet.output
+        job_name        = "cadvisor"
+        scheme          = "https"
+        metrics_path    = "/metrics/cadvisor"
+        scrape_interval = "30s"
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+        tls_config {
+          insecure_skip_verify = true
+        }
+
+        clustering {
+          enabled = true
+        }
+
         forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
       }
 
@@ -156,6 +210,57 @@ alloy:
           statements = [
             "set(resource.attributes[\"service.name\"], ExtractPatterns(body.string, \"app_name=(?P<app>[^ ]+)\")[\"app\"])",
             "set(resource.attributes[\"telemetry.source\"], \"faro\")",
+          ]
+        }
+
+        output {
+          logs = [
+            otelcol.processor.k8sattributes.telemetry.input,
+          ]
+        }
+      }
+
+      otelcol.receiver.tcplog "talos" {
+        listen_address = "0.0.0.0:5170"
+
+        output {
+          logs = [
+            otelcol.processor.transform.talos_logs.input,
+          ]
+        }
+      }
+
+      otelcol.processor.transform "talos_logs" {
+        error_mode = "ignore"
+
+        // Resource attributes are shared by every record in a batch, so per-record fields stay log attributes.
+        log_statements {
+          context = "log"
+          statements = [
+            "set(log.cache, ParseJSON(log.body.string)) where IsMatch(log.body.string, \"^\\\\s*\\\\{\")",
+            "merge_maps(log.attributes, log.cache, \"upsert\") where log.cache != nil",
+            "set(log.time, Time(log.cache[\"talos-time\"], \"%Y-%m-%dT%H:%M:%S.%f%z\")) where log.cache[\"talos-time\"] != nil",
+            "set(log.time, log.observed_time) where log.time_unix_nano == 0",
+            "set(log.severity_text, log.cache[\"talos-level\"]) where log.cache[\"talos-level\"] != nil",
+            "set(log.severity_number, SEVERITY_NUMBER_DEBUG) where log.severity_text == \"debug\"",
+            "set(log.severity_number, SEVERITY_NUMBER_INFO) where log.severity_text == \"info\"",
+            "set(log.severity_number, SEVERITY_NUMBER_WARN) where log.severity_text == \"warn\" or log.severity_text == \"warning\"",
+            "set(log.severity_number, SEVERITY_NUMBER_ERROR) where log.severity_text == \"error\"",
+            "set(log.severity_number, SEVERITY_NUMBER_FATAL) where log.severity_text == \"fatal\" or log.severity_text == \"panic\"",
+            "set(log.attributes[\"talos.service\"], log.cache[\"talos-service\"]) where log.cache[\"talos-service\"] != nil",
+            "set(log.body, log.cache[\"msg\"]) where log.cache[\"msg\"] != nil",
+            "delete_key(log.attributes, \"msg\")",
+            "delete_key(log.attributes, \"talos-time\")",
+            "delete_key(log.attributes, \"talos-level\")",
+            "delete_key(log.attributes, \"talos-service\")",
+          ]
+        }
+
+        log_statements {
+          context = "resource"
+          statements = [
+            "set(resource.attributes[\"service.name\"], \"talos\")",
+            "set(resource.attributes[\"telemetry.source\"], \"talos\")",
           ]
         }
 
@@ -480,6 +585,16 @@ alloy:
       port: 12347
       targetPort: 12347
       protocol: TCP
+    - name: talos-logs
+      port: 5170
+      targetPort: 5170
+      protocol: TCP
+
+service:
+  clusterIP: 10.101.101.141
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: talos-logs.internal.karafra.net
+    external-dns.alpha.kubernetes.io/ttl: "60"
 
 controller:
   type: statefulset
