@@ -227,7 +227,7 @@ notifications:
           targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
         deployment:
           state: in_progress
-          environment: "{{.app.spec.destination.namespace}}"
+          environment: "{{.app.metadata.name}}"
           environmentURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
           logURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
     template.app-deployed: |
@@ -240,7 +240,7 @@ notifications:
           targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
         deployment:
           state: success
-          environment: "{{.app.spec.destination.namespace}}"
+          environment: "{{.app.metadata.name}}"
           environmentURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
           logURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
         pullRequestComment:
@@ -271,7 +271,7 @@ notifications:
           targetURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
         deployment:
           state: failure
-          environment: "{{.app.spec.destination.namespace}}"
+          environment: "{{.app.metadata.name}}"
           environmentURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
           logURL: "https://${argocd_ingress_domain}/applications/{{.app.metadata.name}}"
 
