@@ -2,15 +2,15 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "5.5.0"
+      version = "5.28.1"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "2.17.0"
+      version = "3.3.0"
     }
     google = {
       source  = "hashicorp/google"
-      version = "7.36.0"
+      version = "8.9.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
@@ -18,7 +18,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "3.2.1"
+      version = "3.4.0"
     }
   }
   backend "remote" {
