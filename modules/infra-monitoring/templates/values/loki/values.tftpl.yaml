@@ -45,6 +45,7 @@ minio:
     name: loki-minio
   persistence:
     storageClass: longhorn
+    size: 50Gi
   enabled: true
   postJob:
     nodeSelector:
