@@ -30,6 +30,22 @@ configs:
             orgs:
               - name: ${github_org}
 
+  cmp:
+    create: true
+    plugins:
+      jsonnet-bundler:
+        init:
+          command: [sh, -c]
+          args:
+            - jb install
+        generate:
+          command: [sh, -c]
+          args:
+            - jsonnet -J vendor main.jsonnet
+        discover:
+          find:
+            command: [sh, -c, find . -maxdepth 1 -name jsonnetfile.json]
+
   rbac:
     policy.default: role:readonly
     policy.csv: |
@@ -75,6 +91,58 @@ controller:
 
 repoServer:
   replicas: 2
+
+  initContainers:
+    - name: install-jsonnet-tools
+      image: golang:1.24.2-alpine3.21
+      command: [sh, -c]
+      args:
+        - |
+          set -eu
+          GOBIN=/cmp-tools go install github.com/google/go-jsonnet/cmd/jsonnet@v0.21.0
+          GOBIN=/cmp-tools go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@v0.6.0
+      volumeMounts:
+        - name: cmp-tools
+          mountPath: /cmp-tools
+
+  extraContainers:
+    - name: cmp-jsonnet-bundler
+      command:
+        - /var/run/argocd/argocd-cmp-server
+      image: quay.io/argoproj/argocd:v3.5.7
+      env:
+        - name: PATH
+          value: /cmp-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      volumeMounts:
+        - mountPath: /var/run/argocd
+          name: var-files
+        - mountPath: /home/argocd/cmp-server/plugins
+          name: plugins
+        - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+          subPath: jsonnet-bundler.yaml
+          name: cmp-config
+        - mountPath: /tmp
+          name: cmp-tmp
+        - mountPath: /cmp-tools
+          name: cmp-tools
+          readOnly: true
+
+  volumes:
+    - name: cmp-config
+      configMap:
+        name: argocd-cmp-cm
+    - name: cmp-tmp
+      emptyDir: {}
+    - name: cmp-tools
+      emptyDir: {}
 
   metrics:
     enabled: true
