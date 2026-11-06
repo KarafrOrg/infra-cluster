@@ -112,6 +112,17 @@ resource "kubectl_manifest" "argocd_webhook_public" {
   depends_on = [helm_release.argo_cd]
 }
 
+resource "kubectl_manifest" "monitoring_application" {
+  yaml_body = templatefile("${path.module}/templates/manifests/argocd/monitoring-application.tftmpl.yaml", {
+    argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace
+    repo_url                       = "https://github.com/KarafrOrg/infra-cluster"
+    target_revision                = "HEAD"
+    path                           = "modules/infra-argo/monitoring"
+    destination_namespace          = "infra-monitoring"
+  })
+  depends_on = [helm_release.argo_cd]
+}
+
 resource "kubectl_manifest" "argocd_application_set" {
   yaml_body = templatefile("${path.module}/templates/manifests/argocd/application-set.tftmpl.yaml", {
     argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace,

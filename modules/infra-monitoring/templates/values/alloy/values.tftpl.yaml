@@ -24,6 +24,11 @@ alloy:
         ]
       }
 
+      // Syncs PrometheusRule objects to the Mimir ruler.
+      mimir.rules.kubernetes "kubernetes" {
+        address = "http://${mimir_release_name}-gateway.${mimir_namespace}.svc.cluster.local"
+      }
+
       discovery.kubernetes "services" {
         role = "service"
       }

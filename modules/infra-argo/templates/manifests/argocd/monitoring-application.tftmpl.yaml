@@ -1,0 +1,24 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: ${argo_cd_helm_release_namespace}
+spec:
+  project: default
+  source:
+    repoURL: ${repo_url}
+    targetRevision: ${target_revision}
+    path: ${path}
+    plugin:
+      name: jsonnet-bundler
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ${destination_namespace}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

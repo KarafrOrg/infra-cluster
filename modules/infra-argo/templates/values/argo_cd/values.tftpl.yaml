@@ -41,7 +41,7 @@ configs:
         generate:
           command: [sh, -c]
           args:
-            - jsonnet -J vendor main.jsonnet
+            - jsonnet -J vendor main.libsonnet
         discover:
           find:
             command: [sh, -c, find . -maxdepth 1 -name jsonnetfile.json]

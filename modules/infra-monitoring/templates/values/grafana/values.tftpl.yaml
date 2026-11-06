@@ -115,6 +115,15 @@ datasources:
           exemplarTraceIdDestinations:
             - name: trace_id
               datasourceUid: tempo
+      - name: Mimir Alertmanager
+        type: alertmanager
+        uid: mimir-alertmanager
+        access: proxy
+        # Grafana appends /alertmanager itself for the Mimir implementation.
+        url: http://${mimir_release_name}-gateway.${mimir_namespace}.svc.cluster.local
+        jsonData:
+          implementation: mimir
+          handleGrafanaManagedAlerts: false
       - name: Loki
         type: loki
         uid: loki
