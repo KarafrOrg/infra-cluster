@@ -15,8 +15,8 @@ mimir:
       compactor_blocks_retention_period: 30d
       # Span-metric exemplars link metrics to traces in Grafana.
       max_global_exemplars_per_user: 100000
-      # Span metrics from Tempo/Beyla make up most series; 150k default was exceeded.
-      max_global_series_per_user: 300000
+      # Span metrics from Tempo/Beyla plus ServiceMonitor targets exceeded 300k; ingesters need ~1.5Gi per 300k series.
+      max_global_series_per_user: 800000
       # Default 10k/s is below what ~300k series at a 60s scrape interval plus backlog replays push.
       ingestion_rate: 50000
       ingestion_burst_size: 1000000
@@ -87,9 +87,9 @@ ingester:
   resources:
     requests:
       cpu: 250m
-      memory: 1Gi
-    limits:
       memory: 3Gi
+    limits:
+      memory: 6Gi
   topologySpreadConstraints: {}
   affinity:
     podAntiAffinity:
@@ -367,3 +367,7 @@ kafka:
     enabled: true
     storageClassName: longhorn
     size: 100Gi
+
+metaMonitoring:
+  serviceMonitor:
+    enabled: true

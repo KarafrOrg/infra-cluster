@@ -4,7 +4,7 @@ preUpgradeChecker:
   upgradeVersionCheck: true
 metrics:
   serviceMonitor:
-    enabled: false
+    enabled: true
 longhornManager:
   nodeSelector: { }
   tolerations:

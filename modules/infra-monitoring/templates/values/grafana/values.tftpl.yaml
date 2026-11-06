@@ -173,3 +173,6 @@ datasources:
         access: proxy
         url: http://${pyroscope_release_name}.${pyroscope_namespace}.svc.cluster.local:4040
 %{ endif ~}
+
+serviceMonitor:
+  enabled: true

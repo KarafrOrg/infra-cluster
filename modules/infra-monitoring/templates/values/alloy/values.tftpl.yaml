@@ -18,6 +18,12 @@ alloy:
         ]
       }
 
+      prometheus.operator.podmonitors "kubernetes" {
+        forward_to = [
+          otelcol.receiver.prometheus.kubernetes.receiver,
+        ]
+      }
+
       discovery.kubernetes "services" {
         role = "service"
       }
@@ -636,3 +642,6 @@ controller:
         matchLabels:
           app.kubernetes.io/name: alloy
           app.kubernetes.io/instance: alloy
+
+serviceMonitor:
+  enabled: true

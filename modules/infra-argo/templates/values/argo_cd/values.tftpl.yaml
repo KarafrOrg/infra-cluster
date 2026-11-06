@@ -38,6 +38,11 @@ configs:
 server:
   replicas: 3
 
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
   service:
     type: ClusterIP
 
@@ -55,6 +60,11 @@ server:
 controller:
   replicas: 2
 
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
   resources:
     requests:
       cpu: 100m
@@ -65,6 +75,11 @@ controller:
 
 repoServer:
   replicas: 2
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
 
   resources:
     requests:
@@ -77,6 +92,11 @@ repoServer:
 applicationSet:
   replicas: 2
 
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
   resources:
     requests:
       cpu: 25m
@@ -87,6 +107,11 @@ applicationSet:
 
 notifications:
   enabled: true
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
 
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
@@ -207,6 +232,11 @@ redis-ha:
   enabled: true
   replicas: 2
 
+  exporter:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
 
@@ -235,6 +265,10 @@ redis-ha:
 
   haproxy:
     replicas: 2
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
     resources:
       requests:
         cpu: 10m

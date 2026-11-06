@@ -53,3 +53,8 @@ cainjector:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
+
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true

@@ -9,4 +9,19 @@ locals {
     service         = local.grafana_postgres_documents[2]
     statefulset     = local.grafana_postgres_documents[3]
   }
+
+  istio_pod_monitors = {
+    ztunnel = {
+      selector = { app = "ztunnel" }
+      endpoint = { port = "ztunnel-stats", path = "/stats/prometheus" }
+    }
+    istio-cni-node = {
+      selector = { "k8s-app" = "istio-cni-node" }
+      endpoint = { port = "metrics", path = "/metrics" }
+    }
+    istiod = {
+      selector = { istio = "pilot" }
+      endpoint = { port = "http-monitoring", path = "/metrics" }
+    }
+  }
 }

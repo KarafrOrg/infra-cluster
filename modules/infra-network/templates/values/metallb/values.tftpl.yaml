@@ -53,5 +53,7 @@ frrk8s:
   enabled: false
 
 prometheus:
+  serviceAccount: alloy
+  namespace: infra-monitoring
   serviceMonitor:
-    enabled: false
+    enabled: true

@@ -37,6 +37,25 @@ resource "helm_release" "metrics_server" {
   namespace        = var.metrics_server.release_namespace
 }
 
+# Scraped by Alloy's prometheus.operator.podmonitors; the selected pods expose metrics but have no Service.
+resource "kubectl_manifest" "istio_pod_monitors" {
+  for_each = var.prometheus_operator_crds.enabled ? local.istio_pod_monitors : {}
+  yaml_body = yamlencode({
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "PodMonitor"
+    metadata = {
+      name      = each.key
+      namespace = var.prometheus_operator_crds.release_namespace
+    }
+    spec = {
+      namespaceSelector   = { any = true }
+      selector            = { matchLabels = each.value.selector }
+      podMetricsEndpoints = [merge(each.value.endpoint, { interval = "30s" })]
+    }
+  })
+  depends_on = [helm_release.prometheus_operator_crds]
+}
+
 resource "helm_release" "prometheus_operator_crds" {
   chart      = "prometheus-operator-crds"
   name       = var.prometheus_operator_crds.release_name

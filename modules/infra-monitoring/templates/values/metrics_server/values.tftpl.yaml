@@ -1,4 +1,4 @@
-replicas: 3
+replicas: 2
 
 nodeSelector:
   node-role.kubernetes.io/control-plane: ""
@@ -49,3 +49,9 @@ securityContext:
     type: RuntimeDefault
 
 priorityClassName: system-cluster-critical
+
+metrics:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
