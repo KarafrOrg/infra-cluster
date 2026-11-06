@@ -46,7 +46,7 @@ provider "kubectl" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host = "https://${var.k8s_cluster_host}:6443"
 
     client_certificate     = base64decode(var.k8s_cluster_client_certificate)
