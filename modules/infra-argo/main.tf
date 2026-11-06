@@ -112,12 +112,18 @@ resource "kubectl_manifest" "argocd_webhook_public" {
   depends_on = [helm_release.argo_cd]
 }
 
+locals {
+  monitoring_modules = toset([for f in fileset("${path.module}/..", "*/monitoring/main.libsonnet") : dirname(dirname(f))])
+}
+
 resource "kubectl_manifest" "monitoring_application" {
+  for_each = local.monitoring_modules
   yaml_body = templatefile("${path.module}/templates/manifests/argocd/monitoring-application.tftmpl.yaml", {
     argo_cd_helm_release_namespace = var.argo_cd_helm_release_namespace
+    name                           = "${each.value}-monitoring"
     repo_url                       = "https://github.com/KarafrOrg/infra-cluster"
     target_revision                = "HEAD"
-    path                           = "modules/infra-argo/monitoring"
+    path                           = "modules/${each.value}/monitoring"
     destination_namespace          = "infra-monitoring"
   })
   depends_on = [helm_release.argo_cd]
