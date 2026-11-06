@@ -106,6 +106,7 @@ resource "kubectl_manifest" "argocd_webhook_public" {
     replicas                       = var.gateway_tunnel_replicas
     webhook_hostname               = var.argocd_webhook_hostname
     istio_gateway_name             = var.private_gateway.name
+    istio_gateway_class_name       = var.private_gateway.class_name
     istio_gateway_namespace        = var.private_gateway.namespace
   })
   depends_on = [helm_release.argo_cd]

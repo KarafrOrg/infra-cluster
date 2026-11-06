@@ -124,8 +124,9 @@ module "infra_storage" {
 
 locals {
   private_gateway = {
-    name      = var.istio.private_gateway_name
-    namespace = var.istio.release_namespace
-    target_ip = var.istio.private_gateway_cluster_ip
+    name       = var.istio.private_gateway_name
+    class_name = var.istio.private_gateway_class_name
+    namespace  = var.istio.release_namespace
+    target_ip  = var.istio.private_gateway_cluster_ip
   }
 }

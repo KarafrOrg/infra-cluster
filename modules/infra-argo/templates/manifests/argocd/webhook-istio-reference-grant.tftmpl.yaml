@@ -11,4 +11,4 @@ spec:
   to:
     - group: ""
       kind: Service
-      name: ${istio_gateway_name}-istio
+      name: ${istio_gateway_name}-${istio_gateway_class_name}

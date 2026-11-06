@@ -102,9 +102,10 @@ variable "faro_host" {
 variable "private_gateway" {
   description = "Private (WARP-only) gateway the service is published through."
   type = object({
-    name      = string
-    namespace = string
-    target_ip = string
+    name       = string
+    class_name = string
+    namespace  = string
+    target_ip  = string
   })
 }
 
