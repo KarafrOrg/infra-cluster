@@ -159,10 +159,10 @@ repoServer:
 
   resources:
     requests:
-      cpu: 50m
+      cpu: 300m
       memory: 128Mi
     limits:
-      cpu: 200m
+      cpu: 600m
       memory: 512Mi
 
 applicationSet:
