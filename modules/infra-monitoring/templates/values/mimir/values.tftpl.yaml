@@ -68,6 +68,9 @@ distributor:
       operator: Exists
       effect: NoSchedule
   replicas: 2
+  env:
+    - name: GOGC
+      value: "200"
   resources:
     requests:
       cpu: 100m
