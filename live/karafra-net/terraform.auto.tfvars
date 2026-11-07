@@ -70,3 +70,10 @@ grafana   = { enabled = true }
 loki      = { enabled = true }
 tempo     = { enabled = true }
 pyroscope = { enabled = true }
+
+blackbox_exporter = {
+  targets = [
+    { name = "github-api", url = "https://www.githubstatus.com/api/v2/status.json", module = "github_status" },
+    { name = "example-tcp", url = "example.com:443", module = "tcp_connect" },
+  ]
+}

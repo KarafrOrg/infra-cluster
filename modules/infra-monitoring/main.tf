@@ -3,6 +3,7 @@ resource "kubectl_manifest" "namespace" {
     for ns in [
       var.metrics_server.enabled ? var.metrics_server.release_namespace : null,
       var.node_exporter.enabled ? var.node_exporter.release_namespace : null,
+      var.blackbox_exporter.enabled ? var.blackbox_exporter.release_namespace : null,
       var.prometheus_operator_crds.enabled ? var.prometheus_operator_crds.release_namespace : null,
       var.kube_state_metrics.enabled ? var.kube_state_metrics.release_namespace : null,
       var.alloy.enabled ? var.alloy.release_namespace : null,
@@ -94,6 +95,30 @@ resource "helm_release" "node_exporter" {
   namespace        = var.node_exporter.release_namespace
 
   depends_on = [
+    helm_release.prometheus_operator_crds,
+  ]
+}
+
+resource "helm_release" "blackbox_exporter" {
+  count      = var.blackbox_exporter.enabled ? 1 : 0
+  chart      = "prometheus-blackbox-exporter"
+  name       = var.blackbox_exporter.release_name
+  repository = var.blackbox_exporter.release_repository
+  values = [
+    templatefile("${path.module}/templates/values/blackbox_exporter/values.tftpl.yaml", {
+      targets = var.blackbox_exporter.targets
+    })
+  ]
+  upgrade_install  = true
+  create_namespace = false
+  timeout          = 900
+  wait             = true
+  cleanup_on_fail  = true
+  atomic           = true
+  namespace        = var.blackbox_exporter.release_namespace
+
+  depends_on = [
+    kubectl_manifest.namespace,
     helm_release.prometheus_operator_crds,
   ]
 }

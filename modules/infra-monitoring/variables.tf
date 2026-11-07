@@ -20,6 +20,22 @@ variable "node_exporter" {
   default = {}
 }
 
+variable "blackbox_exporter" {
+  description = "Blackbox Exporter Helm release and probe targets."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "blackbox-exporter")
+    release_namespace  = optional(string, "infra-monitoring")
+    release_repository = optional(string, "https://prometheus-community.github.io/helm-charts")
+    targets = optional(list(object({
+      name   = string
+      url    = string
+      module = optional(string, "http_2xx")
+    })), [])
+  })
+  default = {}
+}
+
 variable "prometheus_operator_crds" {
   description = "Prometheus Operator CRDs Helm release configuration."
   type = object({

@@ -19,6 +19,7 @@ module "infra_cluster" {
   pyroscope                         = var.pyroscope
   metrics_server                    = var.metrics_server
   node_exporter                     = var.node_exporter
+  blackbox_exporter                 = var.blackbox_exporter
   prometheus_operator_crds          = var.prometheus_operator_crds
   kube_state_metrics                = var.kube_state_metrics
   k8s_cluster_client_certificate    = var.k8s_cluster_client_certificate

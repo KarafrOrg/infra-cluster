@@ -100,6 +100,7 @@ module "infra_monitoring" {
   metrics_server                       = var.metrics_server
   prometheus_operator_crds             = var.prometheus_operator_crds
   node_exporter                        = var.node_exporter
+  blackbox_exporter                    = var.blackbox_exporter
   alloy                                = var.alloy
   mimir                                = var.mimir
   grafana                              = var.grafana
