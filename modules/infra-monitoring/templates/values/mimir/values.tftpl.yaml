@@ -13,6 +13,8 @@ mimir:
         auto_create_topic_default_partitions: 3
     limits:
       compactor_blocks_retention_period: 30d
+      # Monitoring mixins include rule groups larger than the default of 20.
+      ruler_max_rules_per_rule_group: 500
       # Span-metric exemplars link metrics to traces in Grafana.
       max_global_exemplars_per_user: 100000
       # Span metrics from Tempo/Beyla plus ServiceMonitor targets exceeded 300k; ingesters need ~1.5Gi per 300k series.

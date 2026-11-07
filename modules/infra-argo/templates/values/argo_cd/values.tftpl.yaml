@@ -333,10 +333,10 @@ redis-ha:
   sentinel:
     resources:
       requests:
-        cpu: 10m
+        cpu: 25m
         memory: 32Mi
       limits:
-        cpu: 50m
+        cpu: 250m
         memory: 64Mi
 
   haproxy:
@@ -361,8 +361,8 @@ dex:
 
   resources:
     requests:
-      cpu: 10m
+      cpu: 25m
       memory: 256Mi
     limits:
-      cpu: 100m
+      cpu: 500m
       memory: 512Mi
