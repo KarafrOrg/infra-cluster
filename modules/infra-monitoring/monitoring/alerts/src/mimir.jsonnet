@@ -10,8 +10,16 @@ local config = mixin {
   },
 };
 
-prometheusRule.new('mimir')
-+ prometheusRule.spec.withGroups(
+local groups =
   config.prometheusAlerts.groups
-  + (if std.objectHasAll(config, 'prometheusRules') then config.prometheusRules.groups else [])
-)
+  + (if std.objectHasAll(config, 'prometheusRules') then config.prometheusRules.groups else []);
+
+local excludes = [
+  'MimirStrongConsistencyOffsetMissing',
+];
+
+prometheusRule.new('mimir')
++ prometheusRule.spec.withGroups([
+  group { rules: [rule for rule in group.rules if !std.objectHas(rule, 'alert') || !std.member(excludes, rule.alert)] }
+  for group in groups
+])
