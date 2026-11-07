@@ -86,10 +86,10 @@ controller:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 1Gi
 
 repoServer:
   replicas: 2
@@ -362,7 +362,7 @@ dex:
   resources:
     requests:
       cpu: 10m
-      memory: 64Mi
+      memory: 256Mi
     limits:
       cpu: 100m
-      memory: 128Mi
+      memory: 512Mi
