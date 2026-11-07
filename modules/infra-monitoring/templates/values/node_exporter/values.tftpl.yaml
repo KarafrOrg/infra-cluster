@@ -25,10 +25,10 @@ prometheus:
 
 resources:
   requests:
-    cpu: 50m
+    cpu: 500m
     memory: 32Mi
   limits:
-    cpu: 500m
+    cpu: 1
     memory: 64Mi
 
 tolerations:
