@@ -1,5 +1,8 @@
 replicas: 2
 
+deploymentAnnotations:
+  configmap.reloader.stakater.com/auto: "true"
+
 nodeSelector:
   node-role.kubernetes.io/control-plane: ""
 tolerations:
