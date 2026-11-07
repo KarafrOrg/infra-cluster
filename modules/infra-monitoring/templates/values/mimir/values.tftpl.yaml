@@ -247,13 +247,14 @@ ruler:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
-  replicas: 1
+  replicas: 2
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 500m
+      memory: 1Gi
     limits:
-      memory: 512Mi
+      cpu: 1
+      memory: 2Gi
 
 store_gateway:
   nodeSelector:
