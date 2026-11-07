@@ -1,7 +1,9 @@
 reloader:
   watchGlobally: true
   autoReloadAll: false
+  enableHA: true
   deployment:
+    replicas: 2
     resources:
       requests:
         cpu: 100m
