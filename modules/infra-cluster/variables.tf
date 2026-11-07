@@ -43,6 +43,18 @@ variable "argocd" {
   })
 }
 
+variable "reloader" {
+  description = "Reloader Helm release configuration for opt-in ConfigMap and Secret rollouts."
+  type = object({
+    enabled            = optional(bool, true)
+    release_name       = optional(string, "reloader")
+    release_namespace  = optional(string, "infra-cicd")
+    release_repository = optional(string, "https://stakater.github.io/stakater-charts")
+    release_version    = optional(string, "2.2.19")
+  })
+  default = {}
+}
+
 variable "cert_manager" {
   description = "cert-manager configuration for automated TLS certificate management via Let's Encrypt DNS-01."
   type = object({
