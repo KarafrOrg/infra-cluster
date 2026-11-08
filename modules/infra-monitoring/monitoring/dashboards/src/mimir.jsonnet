@@ -11,7 +11,7 @@ k8s.core.v1.list.new([
   + configMap.withData({
     [name]: std.manifestJson(dashboard {
       liveNow: true,
-      tags: std.set(dashboard.tags + ['infrastructure', 'prometheus']),
+      tags: std.set(dashboard.tags + ['infrastructure', 'prometheus', 'mimir-mixin']),
       templating+: {
         list: [
           if variable.name == 'cluster' then {
