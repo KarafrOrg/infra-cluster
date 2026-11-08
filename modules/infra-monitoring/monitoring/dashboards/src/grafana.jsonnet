@@ -14,9 +14,9 @@ local dashboards = mixin.grafanaDashboards;
       tags: std.set(dashboard.tags + ['infrastructure', 'grafana']),
       templating+: {
         list: [
-          if variable.name == 'datasource' then variable { hide: 2 } else
-            if variable.name == 'job' then variable { hide: 2 }
-            else variable
+          if variable.name == 'datasource' then variable { hide: 2 }
+          else if variable.name == 'job' then variable { hide: 2 }
+          else variable
           for variable in dashboard.templating.list
         ],
       },
