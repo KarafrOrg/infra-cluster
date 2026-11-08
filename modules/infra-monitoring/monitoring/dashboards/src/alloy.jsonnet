@@ -14,7 +14,7 @@ local dashboards = mixin.grafanaDashboards;
   + configMap.metadata.withLabels({ grafana_dashboard: '1' })
   + configMap.metadata.withAnnotations({ grafana_folder: 'infrastructure/alloy' })
   + configMap.withData({
-    [name]: std.manifestJson({
+    [name]: std.manifestJson(dashboard {
       liveNow: true,
       tags: std.set(dashboard.tags + ['infrastructure', 'alloy']),
       templating+: {
