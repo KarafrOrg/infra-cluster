@@ -6,8 +6,13 @@ local mixin = (import 'github.com/prometheus/node_exporter/docs/node-mixin/mixin
   },
 };
 local dashboards = mixin.grafanaDashboards;
+local additionalTags = [
+  'infrastructure',
+  'node-exporter',
+  'nodes',
+];
 
-k8s.core.v1.list.new([
+[
   local dashboard = dashboards[name];
   configMap.new(std.strReplace(name, '.json', ''))
   + configMap.metadata.withLabels({ grafana_dashboard: '1' })
@@ -15,7 +20,7 @@ k8s.core.v1.list.new([
   + configMap.withData({
     [name]: std.manifestJson(dashboard {
       liveNow: true,
-      tags: std.set(dashboard.tags + ['infrastructure', 'node-exporter', 'nodes']),
+      tags: std.set(dashboard.tags + additionalTags),
       templating+: {
         list: [
           if variable.name == 'datasource' then variable { hide: 2 } else variable
@@ -26,4 +31,4 @@ k8s.core.v1.list.new([
   })
   for name in std.objectFields(dashboards)
   if name != 'nodes-aix.json' && name != 'nodes-darwin.json'
-])
+]

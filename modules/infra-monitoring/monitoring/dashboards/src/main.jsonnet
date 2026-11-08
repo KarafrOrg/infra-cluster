@@ -5,6 +5,6 @@ k8s.core.v1.list.new(
   + (import 'grafana.jsonnet').items
   + (import 'loki.jsonnet').items
   + (import 'mimir.jsonnet').items
-  + (import 'node-exporter.jsonnet').items
+  + (import 'node-exporter.jsonnet')
   + (import 'tempo.jsonnet').items
 )

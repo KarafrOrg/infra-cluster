@@ -1,6 +1,17 @@
 local k8s = import 'github.com/jsonnet-libs/k8s-libsonnet/1.35/main.libsonnet';
 local configMap = k8s.core.v1.configMap;
-local mixin = import 'github.com/grafana/loki/production/loki-mixin/mixin.libsonnet';
+local mixin = (import 'github.com/grafana/loki/production/loki-mixin/mixin.libsonnet') {
+  _config+: {
+    blooms+: { enabled: false },
+    thanos+: { enabled: false },
+    operational+: {
+      memcached: true,
+      gcs: false,
+      s3: false,
+      azureBlob: false,
+    },
+  },
+};
 local dashboards = mixin.grafanaDashboards;
 
 k8s.core.v1.list.new([
