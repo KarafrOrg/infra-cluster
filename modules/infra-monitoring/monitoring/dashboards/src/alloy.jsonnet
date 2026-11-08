@@ -7,6 +7,8 @@ local mixin = (import 'github.com/grafana/alloy/operations/alloy-mixin/mixin.lib
   },
 };
 local dashboards = mixin.grafanaDashboards;
+local excludedDashboards = ['alloy-otel-engine-overview.json'];
+local hiddenVariables = ['datasource', 'job', 'cluster', 'loki_datasource', 'namespace'];
 
 [
   local dashboard = dashboards[name];
@@ -19,12 +21,7 @@ local dashboards = mixin.grafanaDashboards;
       tags: std.set(dashboard.tags + ['infrastructure', 'alloy']),
       templating+: {
         list: [
-          if variable.name == 'datasource' then variable { hide: 2 }
-          else if variable.name == 'job' then variable { hide: 2 }
-          else if variable.name == 'cluster' then variable { hide: 2 }
-          else if variable.name == 'datasource' then variable { hide: 2 }
-          else if variable.name == 'loki_datasource' then variable { hide: 2 }
-          else if variable.name == 'namespace' then variable { hide: 2 }
+          if std.member(hiddenVariables, variable.name) then variable { hide: 2 }
           else variable
           for variable in dashboard.templating.list
         ],
@@ -32,4 +29,5 @@ local dashboards = mixin.grafanaDashboards;
     }),
   })
   for name in std.objectFields(dashboards)
+  if !std.member(excludedDashboards, name)
 ]
