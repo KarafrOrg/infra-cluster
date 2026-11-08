@@ -21,6 +21,9 @@ local dashboards = mixin.grafanaDashboards;
         list: [
           if variable.name == 'datasource' then variable { hide: 2 }
           else if variable.name == 'job' then variable { hide: 2 }
+          else if variable.name == 'cluster' then variable { hide: 2 }
+          else if variable.name == 'datasource' then variable { hide: 2 }
+          else if variable.name == 'loki_datasource' then variable { hide: 2 }
           else variable
           for variable in dashboard.templating.list
         ],
