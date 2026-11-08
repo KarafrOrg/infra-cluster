@@ -17,6 +17,7 @@ k8s.core.v1.list.new([
   + configMap.metadata.withAnnotations({ grafana_folder: 'infrastructure/mimir' })
   + configMap.withData({
     [name]: std.manifestJson(dashboard {
+      liveNow: true,
       templating+: {
         list: [
           if variable.name == 'cluster' then {
@@ -25,6 +26,16 @@ k8s.core.v1.list.new([
             hide: 2,
             query: '.*',
             current: { text: '.*', value: '.*' },
+          } else if variable.name == 'datasource' then variable + {
+            type: 'constant',
+            hide: 2,
+            query: 'mimir',
+            current: { text: 'Mimir', value: 'mimir' },
+          } else if variable.name == 'namespace' then variable + {
+            type: 'constant',
+            hide: 2,
+            query: 'infra-monitoring',
+            current: { text: 'infra-monitoring', value: 'infra-monitoring' },
           } else variable
           for variable in dashboard.templating.list
         ],
