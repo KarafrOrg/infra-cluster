@@ -18,6 +18,9 @@ tolerations:
 persistence:
   enabled: false
 
+plugins:
+  - grafana-llm-app
+
 # Loads dashboards from ConfigMaps labelled grafana_dashboard=1 in any namespace.
 sidecar:
   dashboards:
@@ -137,6 +140,15 @@ datasources:
               url: "$$${__value.raw}"
               datasourceUid: tempo
               urlDisplayLabel: View trace
+        correlations:
+          - targetUID: mimir
+            label: Service request rate
+            description: Request rate from span metrics for this log's service.
+            type: query
+            config:
+              field: Line
+              target:
+                expr: 'sum by (service_name) (rate(traces_span_metrics_calls{service_name="$$service_name"}[5m]))'
       - name: Tempo
         type: tempo
         access: proxy
@@ -154,8 +166,10 @@ datasources:
             spanStartTimeShift: -5m
             spanEndTimeShift: 5m
             tags:
-              - key: service.name
-                value: service_name
+              - key: k8s.namespace.name
+                value: k8s_namespace_name
+              - key: k8s.pod.name
+                value: k8s_pod_name
           tracesToMetrics:
             datasourceUid: mimir
             spanStartTimeShift: -5m
@@ -165,18 +179,56 @@ datasources:
                 value: service_name
             queries:
               - name: Request rate
-                query: sum(rate(traces_span_metrics_calls_total{$$__tags}[$$__rate_interval]))
+                query: sum(rate(traces_span_metrics_calls{$$__tags}[$$__rate_interval]))
               - name: Error rate
-                query: sum(rate(traces_span_metrics_calls_total{$$__tags, status_code="STATUS_CODE_ERROR"}[$$__rate_interval]))
+                query: sum(rate(traces_span_metrics_calls{$$__tags, status_code="STATUS_CODE_ERROR"}[$$__rate_interval]))
               - name: Latency p95
-                query: histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket{$$__tags}[$$__rate_interval])) by (le))
+                query: histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_bucket{$$__tags}[$$__rate_interval])) by (le))
 %{ if pyroscope_enabled ~}
           tracesToProfiles:
             datasourceUid: pyroscope
             profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
             tags:
-              - key: service.name
-                value: service_name
+              - key: k8s.namespace.name
+                value: namespace
+              - key: k8s.pod.name
+                value: pod
+%{ endif ~}
+        correlations:
+          - targetUID: loki
+            label: Pod logs
+            description: Logs from the span's pod, including logs without trace IDs.
+            type: query
+            config:
+              field: serviceTags
+              target:
+                expr: '{k8s_namespace_name="$$namespace", k8s_pod_name="$$pod"}'
+              transformations:
+                - type: regex
+                  expression: '\{(?=[^}]*"key"\s*:\s*"k8s\.namespace\.name")[^}]*"value"\s*:\s*"([^"]+)"'
+                  mapValue: namespace
+                - type: regex
+                  expression: '\{(?=[^}]*"key"\s*:\s*"k8s\.pod\.name")[^}]*"value"\s*:\s*"([^"]+)"'
+                  mapValue: pod
+%{ if pyroscope_enabled ~}
+          - targetUID: pyroscope
+            label: Pod CPU profile
+            description: Aggregate CPU profile for the span's pod.
+            type: query
+            config:
+              field: serviceTags
+              target:
+                queryType: profile
+                profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
+                labelSelector: '{namespace="$$namespace", pod="$$pod"}'
+                groupBy: []
+              transformations:
+                - type: regex
+                  expression: '\{(?=[^}]*"key"\s*:\s*"k8s\.namespace\.name")[^}]*"value"\s*:\s*"([^"]+)"'
+                  mapValue: namespace
+                - type: regex
+                  expression: '\{(?=[^}]*"key"\s*:\s*"k8s\.pod\.name")[^}]*"value"\s*:\s*"([^"]+)"'
+                  mapValue: pod
 %{ endif ~}
 %{ if pyroscope_enabled ~}
       - name: Pyroscope

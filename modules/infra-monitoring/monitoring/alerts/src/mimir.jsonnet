@@ -4,6 +4,7 @@ local mixin = import 'github.com/grafana/mimir/operations/mimir-mixin/mixin.libs
 
 local config = mixin {
   _config+:: {
+    cortex_p99_latency_threshold_seconds: 10,
     // The rollout-operator mixin reads these flags from its own config scope, which the Mimir mixin does not populate.
     rollout_operator_zpdb_config_observer_alert_enabled: false,
     rollout_operator_replica_template_observer_alert_enabled: false,
