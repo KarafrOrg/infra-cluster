@@ -2,7 +2,9 @@
 
 ## Monitoring dashboards
 
-Grafana provisions the Mimir overview, reads, writes, and queries dashboards from the Mimir mixin into the `infra/mimir` folder. Their cluster selector matches all clusters, including metrics without a cluster label; the Mimir datasource and `infra-monitoring` namespace selectors are hidden, and live refresh is enabled.
+Grafana provisions all dashboards exposed by the Mimir mixin into the `infrastructure/mimir` folder. Their cluster selector matches all clusters, including metrics without a cluster label; the Mimir datasource and `infra-monitoring` namespace selectors are hidden, and live refresh is enabled.
+
+Grafana's `ubica-keplerplus-app` plugin download uses the Grafana.com proxy token from External Secrets. Store the token in the configured ClusterSecretStore under `grafana-com-proxy-token` (or set `grafana.grafana_com.proxy_token_gcp_secret_id` to the Secret Manager key); Grafana reads it as `GF_GRAFANA_COM_PROXY_TOKEN`.
 
 Grafana Explore also links Loki logs to the corresponding Mimir span-metric request rate when the log has a `service_name` and matching traced requests exist. The Grafana LLM plugin is installed and automatically enabled; an administrator must configure an LLM provider in the plugin before LLM features can be used. Configuring an external provider can send observability data to that provider.
 

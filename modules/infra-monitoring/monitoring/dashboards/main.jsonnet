@@ -9,11 +9,12 @@ k8s.core.v1.list.new([
   local dashboard = dashboards[name];
   configMap.new(std.strReplace(name, '.json', ''))
   + configMap.metadata.withLabels({ grafana_dashboard: '1' })
-  + configMap.metadata.withAnnotations({ grafana_folder: 'infra/mimir' })
+  + configMap.metadata.withAnnotations({ grafana_folder: 'infrastructure/mimir' })
   + configMap.withData({
     [name]: std.manifestJson(dashboard {
       liveNow: true,
-      templating+: {
+    tags: std.set(dashboard.tags + ['infrastructure', 'prometheus']),
+    templating+: {
         list: [
           if variable.name == 'cluster' then {
             name: 'cluster',
