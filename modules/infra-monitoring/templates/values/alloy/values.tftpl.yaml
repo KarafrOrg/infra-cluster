@@ -14,13 +14,13 @@ alloy:
 
       prometheus.operator.servicemonitors "kubernetes" {
         forward_to = [
-          otelcol.receiver.prometheus.kubernetes.receiver,
+          prometheus.remote_write.mimir.receiver,
         ]
       }
 
       prometheus.operator.podmonitors "kubernetes" {
         forward_to = [
-          otelcol.receiver.prometheus.kubernetes.receiver,
+          prometheus.remote_write.mimir.receiver,
         ]
       }
 
@@ -80,7 +80,7 @@ alloy:
 
       prometheus.scrape "annotated_services" {
         targets    = discovery.relabel.annotated_services.output
-        forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
+        forward_to = [prometheus.remote_write.mimir.receiver]
       }
 
       discovery.kubernetes "nodes" {
@@ -112,7 +112,7 @@ alloy:
           enabled = true
         }
 
-        forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
+        forward_to = [prometheus.remote_write.mimir.receiver]
       }
 
       prometheus.scrape "cadvisor" {
@@ -131,14 +131,13 @@ alloy:
           enabled = true
         }
 
-        forward_to = [otelcol.receiver.prometheus.kubernetes.receiver]
+        forward_to = [prometheus.remote_write.mimir.receiver]
       }
 
-      otelcol.receiver.prometheus "kubernetes" {
-        output {
-          metrics = [
-            otelcol.processor.k8sattributes.telemetry.input,
-          ]
+      // Keep Prometheus scrapes on the native path so names such as *_total remain unchanged.
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://${mimir_release_name}-gateway.${mimir_namespace}.svc.cluster.local/api/v1/push"
         }
       }
 
