@@ -16,8 +16,8 @@ configs:
     server.insecure: true
     otlp.address: ${otlp_address}
     otlp.insecure: "true"
-    controller.repo.server.timeout.seconds: "300"
-    server.repo.server.timeout.seconds: "300"
+    controller.repo.server.timeout.seconds: "900"
+    server.repo.server.timeout.seconds: "900"
 
   cm:
     admin.enabled: "false"
@@ -39,7 +39,40 @@ configs:
         init:
           command: [sh, -c]
           args:
-            - jb install
+            - |
+              set -eu
+              if [ ! -f jsonnetfile.lock.json ]; then
+                jb install
+                exit 0
+              fi
+              if [ -e vendor ] || grep -qE '"local"[[:space:]]*:' jsonnetfile.json jsonnetfile.lock.json; then
+                jb install
+                exit 0
+              fi
+              dependency_key() {
+                file_hash=$(sha256sum jsonnetfile.json) || return 1
+                lock_hash=$(sha256sum jsonnetfile.lock.json) || return 1
+                file_hash=$(printf '%s' "$file_hash" | cut -d ' ' -f1)
+                lock_hash=$(printf '%s' "$lock_hash" | cut -d ' ' -f1)
+                printf '%s-%s' "$file_hash" "$lock_hash"
+              }
+              key=$(dependency_key)
+              cache=/jsonnet-cache/jb-v0.6.0-$key
+              exec 9>"/jsonnet-cache/jb-v0.6.0-$key.lock"
+              flock -x 9
+              if [ -f "$cache/complete" ]; then
+                cp -a "$cache/vendor" ./vendor
+              else
+                jb install
+                updated_key=$(dependency_key)
+                if [ "$key" = "$updated_key" ]; then
+                  mkdir -p "$cache/vendor"
+                  cp -a vendor/. "$cache/vendor/"
+                  touch "$cache/complete"
+                else
+                  echo "Jsonnet dependency files changed during install; skipping cache" >&2
+                fi
+              fi
         generate:
           command: [sh, -c]
           args:
@@ -96,9 +129,19 @@ repoServer:
 
   env:
     - name: ARGOCD_EXEC_TIMEOUT
-      value: 5m
+      value: 15m
 
   initContainers:
+    - name: prepare-jsonnet-cache
+      image: quay.io/argoproj/argocd:v3.5.7
+      command: [sh, -c, "chown 999:999 /jsonnet-cache && chmod 770 /jsonnet-cache"]
+      securityContext:
+        runAsUser: 0
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+      volumeMounts:
+        - name: jsonnet-cache
+          mountPath: /jsonnet-cache
     - name: install-jsonnet-tools
       image: golang:1.24.2-alpine3.21
       command: [sh, -c]
@@ -118,7 +161,7 @@ repoServer:
       image: quay.io/argoproj/argocd:v3.5.7
       env:
         - name: ARGOCD_EXEC_TIMEOUT
-          value: 5m
+          value: 15m
         - name: PATH
           value: /cmp-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       securityContext:
@@ -142,6 +185,8 @@ repoServer:
         - mountPath: /cmp-tools
           name: cmp-tools
           readOnly: true
+        - mountPath: /jsonnet-cache
+          name: jsonnet-cache
 
   volumes:
     - name: cmp-config
@@ -151,6 +196,9 @@ repoServer:
       emptyDir: {}
     - name: cmp-tools
       emptyDir: {}
+    - name: jsonnet-cache
+      persistentVolumeClaim:
+        claimName: argocd-jsonnet-cache
 
   metrics:
     enabled: true
@@ -164,6 +212,19 @@ repoServer:
     limits:
       cpu: 600m
       memory: 512Mi
+
+extraObjects:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: argocd-jsonnet-cache
+    spec:
+      accessModes:
+        - ReadWriteMany
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 2Gi
 
 applicationSet:
   replicas: 2

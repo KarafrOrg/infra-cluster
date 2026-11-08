@@ -55,7 +55,7 @@ module "infra_argo" {
   faro_host                                       = "${var.alloy.release_name}.${var.alloy.release_namespace}.svc.cluster.local"
   private_gateway                                 = local.private_gateway
   // endregion
-  depends_on = [module.infra_secrets, module.infra_network, module.infra_certs]
+  depends_on = [module.infra_secrets, module.infra_network, module.infra_certs, module.infra_storage]
 }
 
 module "infra_certs" {
