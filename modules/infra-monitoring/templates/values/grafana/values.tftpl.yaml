@@ -20,6 +20,17 @@ persistence:
 
 plugins:
   - grafana-llm-app
+  - ubica-keplerplus-app
+  - volkovlabs-variable-panel
+  - volkovlabs-image-panel
+  - volkovlabs-rss-datasource
+  - volkovlabs-grapi-datasource
+  - volkovlabs-table-panel
+  - marcusolsson-dynamictext-panel
+  - volkovlabs-links-panel
+  - marcusolsson-static-datasource
+  - volkovlabs-form-panel
+  - volkovlabs-form-panel
 
 # Loads dashboards from ConfigMaps labelled grafana_dashboard=1 in any namespace.
 sidecar:
