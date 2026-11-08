@@ -7,7 +7,7 @@ local mixin = (import 'github.com/grafana/alloy/operations/alloy-mixin/mixin.lib
   },
 };
 local dashboards = mixin.grafanaDashboards;
-local excludedDashboards = ['alloy-otel-engine-overview.json', 'alloy-opentelemetry.json', 'alloy-loki.json'];
+local excludedDashboards = ['alloy-otel-engine-overview.json', 'alloy-opentelemetry.json', 'alloy-loki.json', 'loki-operational'];
 local hiddenVariables = ['datasource', 'job', 'cluster', 'loki_datasource', 'namespace'];
 
 [

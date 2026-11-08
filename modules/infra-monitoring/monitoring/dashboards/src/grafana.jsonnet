@@ -11,7 +11,7 @@ local dashboards = mixin.grafanaDashboards;
   + configMap.withData({
     [name]: std.manifestJson(dashboard {
       liveNow: true,
-      tags: std.set(dashboard.tags + ['infrastructure', 'grafana']),
+      tags: std.set(dashboard.tags + ['infrastructure', 'grafana', 'grafana-mixin']),
       templating+: {
         list: [
           if variable.name == 'datasource' then variable { hide: 2 }
