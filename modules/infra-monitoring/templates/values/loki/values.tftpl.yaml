@@ -49,7 +49,7 @@ minio:
     name: loki-minio
   persistence:
     storageClass: longhorn
-    size: 50Gi
+    size: 250Gi
   enabled: true
   postJob:
     nodeSelector:
@@ -125,7 +125,7 @@ ingester:
       - name: data
         accessModes:
           - ReadWriteOnce
-        size: 50Gi
+        size: 250Gi
         storageClass: longhorn
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
@@ -196,7 +196,7 @@ indexGateway:
   maxUnavailable: 1
   persistence:
     enabled: true
-    size: 10Gi
+    size: 250Gi
     storageClass: longhorn
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
@@ -219,7 +219,7 @@ compactor:
       - name: data
         accessModes:
           - ReadWriteOnce
-        size: 20Gi
+        size: 250Gi
         storageClass: longhorn
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
