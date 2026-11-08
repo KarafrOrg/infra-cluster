@@ -244,6 +244,7 @@ resource "helm_release" "grafana" {
     helm_release.pyroscope,
     kubectl_manifest.grafana_github_oauth,
     kubectl_manifest.grafana_carto,
+    kubectl_manifest.grafana_com_proxy_token,
     kubectl_manifest.grafana_postgres,
   ]
 }
@@ -297,6 +298,16 @@ resource "kubectl_manifest" "grafana_carto" {
     namespace             = var.grafana.release_namespace
     secret_store_name     = var.grafana.carto.secret_store_name
     api_key_gcp_secret_id = var.grafana.carto.api_key_gcp_secret_id
+  })
+  depends_on = [kubectl_manifest.namespace]
+}
+
+resource "kubectl_manifest" "grafana_com_proxy_token" {
+  count = var.grafana.enabled ? 1 : 0
+  yaml_body = templatefile("${path.module}/templates/manifests/grafana-com-proxy-token-external-secret.tftpl.yaml", {
+    namespace                 = var.grafana.release_namespace
+    secret_store_name         = var.grafana.grafana_com.secret_store_name
+    proxy_token_gcp_secret_id = var.grafana.grafana_com.proxy_token_gcp_secret_id
   })
   depends_on = [kubectl_manifest.namespace]
 }

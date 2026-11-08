@@ -20,7 +20,6 @@ persistence:
 
 plugins:
   - grafana-llm-app
-  - ubica-keplerplus-app
   - volkovlabs-variable-panel
   - volkovlabs-image-panel
   - volkovlabs-rss-datasource
@@ -52,6 +51,10 @@ envValueFrom:
     secretKeyRef:
       name: grafana-postgres
       key: password
+  GF_GRAFANA_COM_PROXY_TOKEN:
+    secretKeyRef:
+      name: grafana-com-proxy-token
+      key: token
 %{ if github_oauth_enabled ~}
   GF_AUTH_GITHUB_CLIENT_ID:
     secretKeyRef:

@@ -267,6 +267,10 @@ variable "grafana" {
       api_key_gcp_secret_id = optional(string, "grafana-carto-api-key")
       secret_store_name     = optional(string, "gcp-cluster-secret-store")
     }), {})
+    grafana_com = optional(object({
+      proxy_token_gcp_secret_id = optional(string, "grafana-com-proxy-token")
+      secret_store_name         = optional(string, "gcp-cluster-secret-store")
+    }), {})
   })
   default = {}
 }
