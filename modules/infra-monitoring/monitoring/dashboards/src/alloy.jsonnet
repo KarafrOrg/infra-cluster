@@ -8,7 +8,7 @@ local mixin = (import 'github.com/grafana/alloy/operations/alloy-mixin/mixin.lib
 };
 local dashboards = mixin.grafanaDashboards;
 
-k8s.core.v1.list.new([
+[
   local dashboard = dashboards[name];
   configMap.new(std.strReplace(name, '.json', ''))
   + configMap.metadata.withLabels({ grafana_dashboard: '1' })
@@ -28,4 +28,4 @@ k8s.core.v1.list.new([
     }),
   })
   for name in std.objectFields(dashboards)
-])
+]
