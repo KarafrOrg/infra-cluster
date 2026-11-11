@@ -61,5 +61,6 @@ defaultSettings:
   replicaSoftAntiAffinity: false
   allowVolumeCreationWithDegradedAvailability: false
   replicaAutoBalance: least-effort
+  concurrentReplicaRebuildPerNodeLimit: 1
   deletingConfirmationFlag: true
   taintToleration: "node-role.kubernetes.io/control-plane:NoSchedule"
