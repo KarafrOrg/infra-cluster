@@ -178,16 +178,52 @@ resource "helm_release" "alloy" {
   ]
 }
 
+resource "kubectl_manifest" "monitoring_gcp_identity" {
+  for_each = { for service, enabled in local.monitoring_gcs_enabled : service => service if enabled }
+  yaml_body = yamlencode({
+    apiVersion = "v1"
+    kind       = "ConfigMap"
+    metadata = {
+      name      = "${each.key}-gcp-identity"
+      namespace = local.monitoring_namespaces[each.key]
+    }
+    data = {
+      "credentials.json" = jsonencode({
+        type                              = "external_account"
+        audience                          = "//iam.googleapis.com/projects/${var.monitoring_gcs.project_number}/locations/global/workloadIdentityPools/${var.monitoring_gcs.pool_id}/providers/${var.monitoring_gcs.provider_id}"
+        subject_token_type                = "urn:ietf:params:oauth:token-type:jwt"
+        token_url                         = "https://sts.googleapis.com/v1/token"
+        service_account_impersonation_url = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/monitoring-${each.key}-storage@${var.monitoring_gcs.project_id}.iam.gserviceaccount.com:generateAccessToken"
+        credential_source                 = { file = "/var/run/gcp-identity/token" }
+      })
+    }
+  })
+  depends_on = [kubectl_manifest.namespace]
+}
+
 resource "helm_release" "mimir" {
   count      = var.mimir.enabled ? 1 : 0
   chart      = "mimir-distributed"
+  version    = local.monitoring_gcs_enabled.mimir ? "6.2.2" : null
   name       = var.mimir.release_name
   repository = var.mimir.release_repository
-  values = [
+  values = concat([
     templatefile("${path.module}/templates/values/mimir/values.tftpl.yaml", {
       mimir_helm_release_namespace = var.mimir.release_namespace
     }),
-  ]
+    ], local.monitoring_gcs_enabled.mimir ? [yamlencode({
+      minio = { enabled = false }
+      global = {
+        extraEnv          = local.monitoring_gcs_env
+        extraVolumes      = local.monitoring_gcs_volumes.mimir
+        extraVolumeMounts = local.monitoring_gcs_mounts
+      }
+      mimir = { structuredConfig = {
+        blocks_storage       = { backend = "gcs", s3 = null, gcs = { bucket_name = var.monitoring_gcs.mimir_blocks } }
+        ruler_storage        = { backend = "gcs", s3 = null, gcs = { bucket_name = var.monitoring_gcs.mimir_ruler } }
+        alertmanager_storage = { backend = "gcs", s3 = null, gcs = { bucket_name = var.monitoring_gcs.mimir_ruler } }
+      } }
+  })] : [])
   upgrade_install  = true
   create_namespace = false
   timeout          = 900
@@ -198,7 +234,7 @@ resource "helm_release" "mimir" {
   atomic          = false
   namespace       = var.mimir.release_namespace
 
-  depends_on = [kubectl_manifest.namespace]
+  depends_on = [kubectl_manifest.namespace, kubectl_manifest.monitoring_gcp_identity]
 }
 
 resource "helm_release" "grafana" {
@@ -380,12 +416,31 @@ module "grafana_published_service" {
 resource "helm_release" "loki" {
   count      = var.loki.enabled ? 1 : 0
   chart      = "loki"
+  version    = local.monitoring_gcs_enabled.loki ? "7.5.0" : null
   name       = var.loki.release_name
   repository = var.loki.release_repository
-  values = [
+  values = concat([
     templatefile("${path.module}/templates/values/loki/values.tftpl.yaml", {
     }),
-  ]
+    ], local.monitoring_gcs_enabled.loki ? [yamlencode({
+      minio = { enabled = false }
+      global = {
+        extraEnv          = local.monitoring_gcs_env
+        extraVolumes      = local.monitoring_gcs_volumes.loki
+        extraVolumeMounts = local.monitoring_gcs_mounts
+      }
+      loki = {
+        storage = {
+          type        = "gcs"
+          bucketNames = { chunks = var.monitoring_gcs.loki_chunks, ruler = var.monitoring_gcs.loki_ruler }
+        }
+        compactor = { retention_enabled = true, delete_request_store = "gcs" }
+        schemaConfig = { configs = [{
+          from  = "2024-04-01", store = "tsdb", object_store = "gcs", schema = "v13"
+          index = { prefix = "loki_index_", period = "24h" }
+        }] }
+      }
+  })] : [])
   upgrade_install  = true
   create_namespace = false
   timeout          = 900
@@ -396,19 +451,30 @@ resource "helm_release" "loki" {
   atomic          = false
   namespace       = var.loki.release_namespace
 
-  depends_on = [kubectl_manifest.namespace]
+  depends_on = [kubectl_manifest.namespace, kubectl_manifest.monitoring_gcp_identity]
 }
 
 resource "helm_release" "tempo" {
   count      = var.tempo.enabled ? 1 : 0
   chart      = "tempo-distributed"
+  version    = local.monitoring_gcs_enabled.tempo ? "1.61.3" : null
   name       = var.tempo.release_name
   repository = var.tempo.release_repository
-  values = [
+  values = concat([
     templatefile("${path.module}/templates/values/tempo/values.tftpl.yaml", {
       release_name = var.tempo.release_name
     }),
-  ]
+    ], local.monitoring_gcs_enabled.tempo ? [yamlencode(merge({
+      minio   = { enabled = false }
+      global  = { extraEnv = local.monitoring_gcs_env }
+      storage = { trace = { backend = "gcs", gcs = { bucket_name = var.monitoring_gcs.tempo_traces } } }
+      }, {
+      for component in ["distributor", "ingester", "querier", "queryFrontend", "queryScheduler", "compactor", "metricsGenerator"] :
+      component => {
+        extraVolumes      = local.monitoring_gcs_volumes.tempo
+        extraVolumeMounts = local.monitoring_gcs_mounts
+      }
+  }))] : [])
   upgrade_install  = true
   create_namespace = false
   timeout          = 900
@@ -419,5 +485,5 @@ resource "helm_release" "tempo" {
   atomic          = false
   namespace       = var.tempo.release_namespace
 
-  depends_on = [kubectl_manifest.namespace]
+  depends_on = [kubectl_manifest.namespace, kubectl_manifest.monitoring_gcp_identity]
 }

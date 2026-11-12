@@ -70,6 +70,26 @@ variable "alloy" {
 }
 
 
+variable "monitoring_gcs" {
+  description = "GCS object storage configuration for monitoring workloads."
+  type = object({
+    project_number = string
+    pool_id        = string
+    provider_id    = optional(string, "oidc")
+    project_id     = string
+    loki_enabled   = optional(bool, false)
+    mimir_enabled  = optional(bool, false)
+    tempo_enabled  = optional(bool, false)
+    loki_chunks    = string
+    loki_ruler     = string
+    mimir_blocks   = string
+    mimir_ruler    = string
+    tempo_traces   = string
+  })
+  default = null
+
+}
+
 variable "mimir" {
   description = "Grafana Mimir Helm release configuration."
   type = object({

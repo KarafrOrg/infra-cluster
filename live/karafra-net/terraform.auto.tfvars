@@ -65,6 +65,20 @@ longhorn = { enabled = true }
 
 alloy = { enabled = true }
 
+monitoring_gcs = {
+  project_number = "1019265211616"
+  project_id     = "karafra-net"
+  pool_id        = "k8s-karafra-net"
+  loki_enabled   = true
+  mimir_enabled  = true
+  tempo_enabled  = true
+  loki_chunks    = "karafra-net-loki-chunks"
+  loki_ruler     = "karafra-net-loki-ruler"
+  mimir_blocks   = "karafra-net-mimir-tsdb"
+  mimir_ruler    = "karafra-net-mimir-ruler"
+  tempo_traces   = "karafra-net-tempo-traces"
+}
+
 mimir     = { enabled = true }
 grafana   = { enabled = true }
 loki      = { enabled = true }

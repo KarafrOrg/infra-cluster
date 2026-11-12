@@ -24,4 +24,29 @@ locals {
       endpoint = { port = "http-monitoring", path = "/metrics" }
     }
   }
+  monitoring_gcs_enabled = {
+    loki  = var.monitoring_gcs != null ? var.monitoring_gcs.loki_enabled && var.loki.enabled : false
+    mimir = var.monitoring_gcs != null ? var.monitoring_gcs.mimir_enabled && var.mimir.enabled : false
+    tempo = var.monitoring_gcs != null ? var.monitoring_gcs.tempo_enabled && var.tempo.enabled : false
+  }
+  monitoring_namespaces = {
+    loki  = var.loki.release_namespace
+    mimir = var.mimir.release_namespace
+    tempo = var.tempo.release_namespace
+  }
+  monitoring_gcs_volumes = {
+    for service in ["loki", "mimir", "tempo"] : service => [
+      {
+        name = "gcp-identity"
+        projected = {
+          sources = [
+            { serviceAccountToken = { audience = "sts.googleapis.com", expirationSeconds = 3600, path = "token" } },
+            { configMap = { name = "${service}-gcp-identity" } }
+          ]
+        }
+      }
+    ]
+  }
+  monitoring_gcs_mounts = [{ name = "gcp-identity", mountPath = "/var/run/gcp-identity", readOnly = true }]
+  monitoring_gcs_env    = [{ name = "GOOGLE_APPLICATION_CREDENTIALS", value = "/var/run/gcp-identity/credentials.json" }]
 }

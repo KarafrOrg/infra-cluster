@@ -13,6 +13,7 @@ module "infra_cluster" {
   istio                             = var.istio
   longhorn                          = var.longhorn
   alloy                             = var.alloy
+  monitoring_gcs                    = var.monitoring_gcs
   mimir                             = var.mimir
   grafana                           = var.grafana
   loki                              = var.loki

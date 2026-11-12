@@ -102,6 +102,7 @@ module "infra_monitoring" {
   node_exporter                        = var.node_exporter
   blackbox_exporter                    = var.blackbox_exporter
   alloy                                = var.alloy
+  monitoring_gcs                       = var.monitoring_gcs
   mimir                                = var.mimir
   grafana                              = var.grafana
   loki                                 = var.loki

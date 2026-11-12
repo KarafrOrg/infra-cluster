@@ -173,6 +173,8 @@ minio:
   persistence:
     storageClass: longhorn
     size: 100Gi
+    annotations:
+      helm.sh/resource-policy: keep
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   tolerations:
