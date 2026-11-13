@@ -16,6 +16,7 @@ spec:
               github:
                 organization: ${argo_cd_github_org}
                 appSecretName: github-app-repo-creds
+                excludeArchivedRepos: true
               filters:
                 - labelMatch: 'argocd-infra'
                 - labelMatch: 'argocd'
