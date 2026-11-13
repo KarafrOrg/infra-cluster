@@ -10,7 +10,7 @@ terraform {
     }
     google = {
       source  = "hashicorp/google"
-      version = "8.9.0"
+      version = "8.10.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
@@ -18,7 +18,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "3.4.0"
+      version = "3.5.0"
     }
   }
   backend "remote" {
