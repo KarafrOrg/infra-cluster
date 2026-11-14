@@ -13,7 +13,8 @@
   --gloom-status-failed: #e87882;
   --gloom-status-suspended: #b7a3c8;
   --gloom-status-unknown: #b6afb9;
-  --gloom-avatar: url("https://avatars.githubusercontent.com/u/55988328?v=4");
+  --gloom-avatar: url("data:image/png;base64,__GLOOM_LOGO_BASE64__");
+  --gloom-logo-background: radial-gradient(circle at center, var(--gloom-raised) 35%, #302528 70%, var(--gloom-surface) 100%);
 }
 
 .sidebar {
@@ -24,7 +25,10 @@
 .sidebar__logo__character {
   content: var(--gloom-avatar);
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
+  box-sizing: border-box;
+  padding: 3px;
+  background: var(--gloom-logo-background);
   border: 2px solid var(--gloom-orange);
   border-radius: 50%;
 }
@@ -44,13 +48,15 @@
 }
 
 .login {
-  background: radial-gradient(ellipse at 30% 30%, #33201e, #0e0e12 65%);
+  background: radial-gradient(ellipse at 30% 35%, #2b2023, #17141a 45%, var(--gloom-background) 85%);
   color: var(--gloom-text);
 }
 
 .login .argo__logo {
-  background-image: var(--gloom-avatar);
-  background-size: cover;
+  background-image: var(--gloom-avatar), var(--gloom-logo-background);
+  background-size: 80% 80%, cover;
+  background-position: center;
+  background-repeat: no-repeat;
   width: min(45vh, 300px);
   height: min(45vh, 300px);
   min-height: 0;
@@ -235,6 +241,14 @@
 .theme-dark .applications-list__search-wrapper .applications-list__search {
   background: var(--gloom-raised);
   border-color: var(--gloom-border);
+}
+
+.applications-tiles__item .applications-list__external-links-icon-container {
+  margin-right: 7px;
+}
+
+.applications-tiles__item .applications-list__external-link .fa-external-link-alt {
+  font-size: 1rem;
 }
 
 .theme-dark .applications-list__view-type i.selected,

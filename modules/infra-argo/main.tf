@@ -10,7 +10,7 @@ resource "helm_release" "argo_cd" {
       github_org                     = var.argocd_github_org,
       github_sso_admin_team          = var.argocd_github_sso_admin_team,
       otlp_address                   = "${var.faro_host}:4317",
-      ui_styles                      = file("${path.module}/templates/values/argo_cd/gloom.css"),
+      ui_styles                      = replace(file("${path.module}/templates/values/argo_cd/gloom.css"), "__GLOOM_LOGO_BASE64__", filebase64("${path.module}/templates/values/argo_cd/gloom-logo.png")),
     })
   ]
   upgrade_install  = true
