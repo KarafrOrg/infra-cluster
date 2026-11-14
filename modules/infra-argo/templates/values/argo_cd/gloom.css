@@ -148,6 +148,14 @@
   color: var(--gloom-yellow);
 }
 
+.theme-dark .tabs .tabs__nav a.active {
+  color: var(--gloom-orange);
+}
+
+.theme-dark .tabs__nav-wrapper > .tabs__indicator {
+  background: var(--gloom-orange) !important;
+}
+
 .theme-dark .login-logout-button:focus {
   box-shadow: 0 0 0 0.1em var(--gloom-yellow);
 }
@@ -190,6 +198,14 @@
 
 .theme-dark .application-status-panel__item-value > a:has([qe-id="utils-sync-status-title"][title^="OutOfSync"]) {
   color: var(--gloom-status-warning) !important;
+}
+
+.theme-dark .application-node-info__container i[style*="rgb(24, 190, 148)" i] {
+  color: var(--gloom-status-healthy) !important;
+}
+
+.theme-dark .application-node-info__container i[style*="color: red" i] {
+  color: var(--gloom-status-failed) !important;
 }
 
 /* Argo CD 3.5.7 sets status colors inline; scope the mapping to status UI. */
