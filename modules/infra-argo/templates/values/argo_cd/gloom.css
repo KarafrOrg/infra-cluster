@@ -7,6 +7,12 @@
   --gloom-muted: #b6afb9;
   --gloom-orange: #ff9830;
   --gloom-yellow: #f2c45b;
+  --gloom-status-healthy: #8aafc0;
+  --gloom-status-active: #e7a5bc;
+  --gloom-status-warning: #f2c45b;
+  --gloom-status-failed: #e87882;
+  --gloom-status-suspended: #b7a3c8;
+  --gloom-status-unknown: #b6afb9;
   --gloom-avatar: url("https://avatars.githubusercontent.com/u/55988328?v=4");
 }
 
@@ -90,6 +96,140 @@
   border-color: var(--gloom-border);
   color: var(--gloom-text);
   box-shadow: none;
+}
+
+.theme-dark a:not(.argo-button):not(.sidebar a),
+.theme-dark .settings-overview__redirect-panel__title,
+.theme-dark .top-bar__title,
+.theme-dark .login-logout-button,
+.theme-dark .login-logout-button:focus {
+  color: var(--gloom-orange);
+}
+
+.theme-dark a:not(.argo-button):not(.sidebar a):hover,
+.theme-dark .login-logout-button:hover {
+  color: var(--gloom-yellow);
+}
+
+.theme-dark .login-logout-button:focus {
+  box-shadow: 0 0 0 0.1em var(--gloom-yellow);
+}
+
+.theme-dark .applications-list__entry--health-Healthy {
+  border-left-color: var(--gloom-status-healthy);
+}
+
+.theme-dark .applications-list__entry--health-Progressing {
+  border-left-color: var(--gloom-status-active);
+}
+
+.theme-dark .applications-list__entry--health-Degraded {
+  border-left-color: var(--gloom-status-failed);
+}
+
+.theme-dark .applications-list__entry--health-Suspended {
+  border-left-color: var(--gloom-status-suspended);
+}
+
+.theme-dark .applications-list__entry--health-Missing {
+  border-left-color: var(--gloom-status-warning);
+}
+
+.theme-dark .applications-list__entry--health-Unknown {
+  border-left-color: var(--gloom-status-unknown);
+}
+
+.theme-dark .application-status-panel__item-value--Succeeded > a {
+  color: var(--gloom-status-healthy) !important;
+}
+
+.theme-dark :is(.application-status-panel__item-value--Running, .application-status-panel__item-value--Terminating) > a {
+  color: var(--gloom-status-active) !important;
+}
+
+.theme-dark :is(.application-status-panel__item-value--Error, .application-status-panel__item-value--Failed) > a {
+  color: var(--gloom-status-failed) !important;
+}
+
+.theme-dark .application-status-panel__item-value > a:has([qe-id="utils-sync-status-title"][title^="OutOfSync"]) {
+  color: var(--gloom-status-warning) !important;
+}
+
+/* Argo CD 3.5.7 sets status colors inline; scope the mapping to status UI. */
+.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(24, 190, 148)" i], [style*="#18be94" i]) {
+  color: var(--gloom-status-healthy) !important;
+}
+
+.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(13, 173, 234)" i], [style*="#0dadea" i]) {
+  color: var(--gloom-status-active) !important;
+}
+
+.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(244, 192, 48)" i], [style*="#f4c030" i]) {
+  color: var(--gloom-status-warning) !important;
+}
+
+.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(233, 109, 118)" i], [style*="#e96d76" i], [style*="rgb(222, 48, 61)" i], [style*="#de303d" i]) {
+  color: var(--gloom-status-failed) !important;
+}
+
+.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(118, 111, 148)" i], [style*="#766f94" i]) {
+  color: var(--gloom-status-suspended) !important;
+}
+
+.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(204, 214, 221)" i], [style*="#ccd6dd" i]) {
+  color: var(--gloom-status-unknown) !important;
+}
+
+.theme-dark svg[qe-id^="utils-"][qe-id$="-status-title"] path {
+  fill: currentColor;
+}
+
+.theme-dark .status-bar__segment:is([style*="rgb(24, 190, 148)" i], [style*="#18be94" i]) {
+  background-color: var(--gloom-status-healthy) !important;
+}
+
+.theme-dark .status-bar__segment:is([style*="rgb(13, 173, 234)" i], [style*="#0dadea" i]) {
+  background-color: var(--gloom-status-active) !important;
+}
+
+.theme-dark .status-bar__segment:is([style*="rgb(244, 192, 48)" i], [style*="#f4c030" i]) {
+  background-color: var(--gloom-status-warning) !important;
+}
+
+.theme-dark .status-bar__segment:is([style*="rgb(233, 109, 118)" i], [style*="#e96d76" i]) {
+  background-color: var(--gloom-status-failed) !important;
+}
+
+.theme-dark .status-bar__segment:is([style*="rgb(118, 111, 148)" i], [style*="#766f94" i]) {
+  background-color: var(--gloom-status-suspended) !important;
+}
+
+.theme-dark .status-bar__segment:is([style*="rgb(204, 214, 221)" i], [style*="#ccd6dd" i]) {
+  background-color: var(--gloom-status-unknown) !important;
+}
+
+.theme-dark .applications-list__summary .chart svg [fill="#18be94" i] {
+  fill: var(--gloom-status-healthy);
+}
+
+.theme-dark .applications-list__summary .chart svg [fill="#0dadea" i] {
+  fill: var(--gloom-status-active);
+}
+
+.theme-dark .applications-list__summary .chart svg [fill="#f4c030" i] {
+  fill: var(--gloom-status-warning);
+}
+
+.theme-dark .applications-list__summary .chart svg [fill="#e96d76" i] {
+  fill: var(--gloom-status-failed);
+}
+
+.theme-dark .applications-list__summary .chart svg [fill="#766f94" i] {
+  fill: var(--gloom-status-suspended);
+}
+
+.theme-dark .applications-list__summary .chart svg [fill="#ccd6dd" i] {
+  fill: var(--gloom-status-unknown);
 }
 
 .theme-dark .applications-list__search-wrapper .applications-list__search {
