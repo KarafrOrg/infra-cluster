@@ -54,16 +54,32 @@
   background-image: var(--gloom-avatar);
 }
 
-.theme-dark .cd-layout {
+.theme-dark .cd-layout,
+.theme-dark .layout {
   background: var(--gloom-background);
 }
 
 .theme-dark .white-box,
-.theme-dark .application-resource-tree__node {
+.theme-dark .application-resource-tree__node,
+.theme-dark .argo-table-list__row,
+.theme-dark .top-bar,
+.theme-dark .sliding-panel__wrapper,
+.theme-dark .popup-container__body,
+.theme-dark .popup-container__footer,
+.theme-dark .tabs__nav:not(.transparent),
+.theme-dark .application-node-info__manifest .tabs__content {
   background: var(--gloom-surface);
   border-color: var(--gloom-border);
   color: var(--gloom-text);
   box-shadow: none;
+}
+
+.theme-dark .sliding-panel__header,
+.theme-dark .sliding-panel__body,
+.theme-dark .popup-container__header__normal {
+  background: var(--gloom-raised);
+  border-color: var(--gloom-border);
+  color: var(--gloom-text);
 }
 
 /* Argo gives pod and orphaned nodes an important background color. */
@@ -106,33 +122,37 @@
   background-color: var(--gloom-raised);
 }
 
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--healthy"], [class*="__pod--succeeded"]),
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--healthy"], [class*="__pod--succeeded"]):hover {
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--healthy"], [class*="__pod--succeeded"]),
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--healthy"], [class*="__pod--succeeded"]):hover {
   background-color: var(--gloom-status-healthy);
 }
 
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--running"], [class*="__pod--progressing"]),
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--running"], [class*="__pod--progressing"]):hover {
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--running"], [class*="__pod--progressing"]),
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--running"], [class*="__pod--progressing"]):hover {
   background-color: var(--gloom-status-active);
 }
 
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--pending"], [class*="__pod--suspended"]),
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--pending"], [class*="__pod--suspended"]):hover {
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--pending"], [class*="__pod--suspended"]),
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--pending"], [class*="__pod--suspended"]):hover {
   background-color: var(--gloom-status-warning);
 }
 
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--failed"], [class*="__pod--degraded"]),
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--failed"], [class*="__pod--degraded"]):hover {
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--failed"], [class*="__pod--degraded"]),
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--failed"], [class*="__pod--degraded"]):hover {
   background-color: var(--gloom-status-failed);
 }
 
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--unknown"], [class*="__pod--missing"]),
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--unknown"], [class*="__pod--missing"]):hover {
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--unknown"], [class*="__pod--missing"]),
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--unknown"], [class*="__pod--missing"]):hover {
   background-color: var(--gloom-status-unknown);
 }
 
-.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):not([class*="__pod--healthy"]):not([class*="__pod--succeeded"]) :is(i, svg) {
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):not([class*="__pod--healthy"]):not([class*="__pod--succeeded"]) :is(i, svg) {
   color: #14100d !important;
+}
+
+.theme-dark :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):not([class*="__pod--healthy"]):not([class*="__pod--succeeded"]) svg path {
+  fill: currentColor;
 }
 
 .theme-dark a:not(.argo-button):not(.sidebar a),
@@ -200,6 +220,18 @@
   color: var(--gloom-status-warning) !important;
 }
 
+.theme-dark .application-status-panel__item a.info {
+  color: var(--gloom-status-healthy) !important;
+}
+
+.theme-dark .application-status-panel__item a.warning {
+  color: var(--gloom-status-warning) !important;
+}
+
+.theme-dark .application-status-panel__item a.error {
+  color: var(--gloom-status-failed) !important;
+}
+
 .theme-dark .application-node-info__container i[style*="rgb(24, 190, 148)" i] {
   color: var(--gloom-status-healthy) !important;
 }
@@ -209,31 +241,31 @@
 }
 
 /* Argo CD 3.5.7 sets status colors inline; scope the mapping to status UI. */
-.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(24, 190, 148)" i], [style*="#18be94" i]) {
+.theme-dark :is(i.fa, i.fas, svg[qe-id], a:has(i.fa), .application-status-panel__item-value):is([style*="rgb(24, 190, 148)" i], [style*="#18be94" i]) {
   color: var(--gloom-status-healthy) !important;
 }
 
-.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(13, 173, 234)" i], [style*="#0dadea" i]) {
+.theme-dark :is(i.fa, i.fas, svg[qe-id], a:has(i.fa), .application-status-panel__item-value):is([style*="rgb(13, 173, 234)" i], [style*="#0dadea" i]) {
   color: var(--gloom-status-active) !important;
 }
 
-.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(244, 192, 48)" i], [style*="#f4c030" i]) {
+.theme-dark :is(i.fa, i.fas, svg[qe-id], a:has(i.fa), .application-status-panel__item-value):is([style*="rgb(244, 192, 48)" i], [style*="#f4c030" i]) {
   color: var(--gloom-status-warning) !important;
 }
 
-.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(233, 109, 118)" i], [style*="#e96d76" i], [style*="rgb(222, 48, 61)" i], [style*="#de303d" i]) {
+.theme-dark :is(i.fa, i.fas, svg[qe-id], a:has(i.fa), .application-status-panel__item-value):is([style*="rgb(233, 109, 118)" i], [style*="#e96d76" i], [style*="rgb(222, 48, 61)" i], [style*="#de303d" i]) {
   color: var(--gloom-status-failed) !important;
 }
 
-.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(118, 111, 148)" i], [style*="#766f94" i]) {
+.theme-dark :is(i.fa, i.fas, svg[qe-id], a:has(i.fa), .application-status-panel__item-value):is([style*="rgb(118, 111, 148)" i], [style*="#766f94" i]) {
   color: var(--gloom-status-suspended) !important;
 }
 
-.theme-dark :is([qe-id^="utils-"][qe-id$="-status-title"], .filter__item i, .application-status-panel__item-value, .application-status-panel__item-value i):is([style*="rgb(204, 214, 221)" i], [style*="#ccd6dd" i]) {
+.theme-dark :is(i.fa, i.fas, svg[qe-id], a:has(i.fa), .application-status-panel__item-value):is([style*="rgb(204, 214, 221)" i], [style*="#ccd6dd" i]) {
   color: var(--gloom-status-unknown) !important;
 }
 
-.theme-dark svg[qe-id^="utils-"][qe-id$="-status-title"] path {
+.theme-dark svg[qe-id]:is([style*="rgb(24, 190, 148)" i], [style*="#18be94" i], [style*="rgb(13, 173, 234)" i], [style*="#0dadea" i], [style*="rgb(244, 192, 48)" i], [style*="#f4c030" i], [style*="rgb(233, 109, 118)" i], [style*="#e96d76" i], [style*="rgb(222, 48, 61)" i], [style*="#de303d" i], [style*="rgb(118, 111, 148)" i], [style*="#766f94" i], [style*="rgb(204, 214, 221)" i], [style*="#ccd6dd" i]) path {
   fill: currentColor;
 }
 
@@ -329,32 +361,194 @@
 }
 
 .theme-dark .applications-list__view-type i.selected,
-.theme-dark .argo-button:not(.argo-button--base):not([disabled]) {
+.theme-dark .argo-button:not(.argo-button--base):not(.disabled):not([disabled]) {
   color: var(--gloom-orange);
 }
 
-.theme-dark .argo-button--base:not([disabled]) {
+.theme-dark .argo-button--base:not(.disabled):not([disabled]) {
   background: #bd4d21;
   color: #fff;
 }
 
-.theme-dark .argo-button--base:not([disabled]):hover {
+.theme-dark .argo-button--base:not(.disabled):not([disabled]):hover {
   background: #e46725;
 }
 
-.theme-dark .applications-list__accordion.argo-button--base-o:not([disabled]) {
+.theme-dark .argo-button--base-o:not(.disabled):not([disabled]),
+.theme-dark .argo-button--rectangle:not(.disabled):not([disabled]) {
   box-shadow: inset 0 0 0 1px var(--gloom-orange);
 }
 
-.theme-dark .applications-list__accordion.argo-button--base-o:not([disabled]):is(:hover, :focus) {
+.theme-dark .argo-button--base-o:not(.disabled):not([disabled]):is(:hover, :focus) {
   background: var(--gloom-raised);
   color: var(--gloom-yellow);
+}
+
+.theme-dark .argo-button--radius-2:not(.disabled):not([disabled]) {
+  border-color: var(--gloom-orange);
+}
+
+.theme-dark .argo-button--radius-2:not(.disabled):not([disabled])::before,
+.theme-dark .argo-button--radius-2:not(.disabled):not([disabled])::after {
+  background: var(--gloom-orange);
+}
+
+.theme-dark .argo-button:is(.argo-button--radius, .argo-button--special):not(.disabled):not([disabled]) {
+  background: #bd4d21;
+  color: #fff;
+}
+
+.theme-dark .argo-button:is(.argo-button--radius, .argo-button--special):not(.disabled):not([disabled]):is(:hover, :focus) {
+  background: #e46725 !important;
+  color: #fff;
 }
 
 .theme-dark .argo-field:focus,
 .theme-dark .argo-textarea:focus,
 .theme-dark .applications-list__search-wrapper .applications-list__search:focus-within {
   border-color: var(--gloom-orange);
+}
+
+.theme-dark .argo-field-container > :is(.argo-field, .argo-textarea):focus + label.argo-label-placeholder {
+  color: var(--gloom-orange);
+}
+
+.theme-dark .argo-field__with-action-btn {
+  border-color: var(--gloom-orange);
+}
+
+.theme-dark input:is([type="checkbox"], [type="radio"]):not(:disabled) {
+  accent-color: var(--gloom-orange);
+}
+
+.theme-dark .argo-checkbox input:checked:not(:disabled) + span,
+.theme-dark .argo-radio input:checked:not(:disabled) + span {
+  background-color: var(--gloom-orange);
+  border-color: var(--gloom-orange);
+  color: var(--gloom-background);
+}
+
+.theme-dark .argo-checkbox input:focus-visible {
+  outline-color: var(--gloom-yellow) !important;
+}
+
+.theme-dark .argo-checkbox-slide input:checked:not(:disabled) + span {
+  background-color: var(--gloom-border);
+}
+
+.theme-dark .argo-checkbox-slide input:checked:not(:disabled) + span::before {
+  background-color: var(--gloom-orange);
+}
+
+.theme-dark .pod-logs-viewer__settings .argo-checkbox input:checked + span {
+  background-color: transparent;
+}
+
+.theme-dark .argo-table-list__row.selected {
+  background-color: var(--gloom-raised);
+}
+
+.theme-dark .argo-table-list--clickable .argo-table-list__row:hover {
+  box-shadow: 0 0 0 1px var(--gloom-orange);
+}
+
+.theme-dark .application-resource-tree--network .application-resource-tree__line {
+  background-image: linear-gradient(90deg, var(--gloom-orange) 50%, transparent 50%);
+}
+
+.theme-dark .application-resource-tree__node--applicationset {
+  border-color: var(--gloom-orange) !important;
+}
+
+.theme-dark .pod-view__node__pod__stat-icon-app,
+.theme-dark .pod-view__node__pod__stat__bar--fill:not(.pod-view__node__pod__stat__bar--neighbors) {
+  background-color: var(--gloom-orange);
+}
+
+.theme-dark .pod-view__node__pod__stat__bar:hover > .pod-view__node__pod__stat__bar--fill:not(.pod-view__node__pod__stat__bar--neighbors) {
+  background-color: var(--gloom-yellow);
+}
+
+.theme-dark .application-details__container span,
+.theme-dark .application-status-panel__item-value--highlight,
+.theme-dark .container-item {
+  color: var(--gloom-orange);
+}
+
+.theme-dark .application-details__warning {
+  color: var(--gloom-status-warning);
+}
+
+.theme-dark .graph-options-panel a.group-nodes-button:active,
+.theme-dark .graph-options-panel a.group-nodes-button-on {
+  border-color: var(--gloom-orange);
+}
+
+.theme-dark :is(.status-icon--success, .popup-container__icon > i.success) {
+  color: var(--gloom-status-healthy);
+}
+
+.theme-dark :is(.status-icon--failed, .popup-container__icon > i.failed, .argo-form-row__error-msg, .application-node-info__err_msg, .filter__error) {
+  color: var(--gloom-status-failed);
+}
+
+.theme-dark :is(.status-icon--running, .filter__loading, .filter__error__retry, .application-operation-state__images-count, .application-notice-icon--info, .application-notice--info .application-notice__icon) {
+  color: var(--gloom-status-active);
+}
+
+.theme-dark :is(.status-icon--pending, .popup-container__icon > i.warning, .application-sync-options .fa-exclamation-triangle, .application-notice-icon--warning, .application-notice--warning .application-notice__icon) {
+  color: var(--gloom-status-warning);
+}
+
+.theme-dark :is(.status-icon--waiting, .status-icon--cancelled, .status-icon--init) {
+  color: var(--gloom-status-unknown);
+}
+
+.theme-dark :is(.application-notice-icon--critical, .application-notice--critical .application-notice__icon) {
+  color: var(--gloom-status-failed);
+}
+
+.theme-dark :is(.application-conditions__condition--error, .events-list__event--Warning, .application-sync-options__warning) {
+  border-left-color: var(--gloom-status-failed);
+}
+
+.theme-dark .application-sync-options__warning {
+  background: var(--gloom-surface);
+  color: var(--gloom-text);
+  box-shadow: none;
+}
+
+.theme-dark :is(.application-conditions__condition--warning, .white-box__readiness-gates-alert) {
+  border-left-color: var(--gloom-status-warning) !important;
+}
+
+.theme-dark :is(.application-conditions__condition--info, .events-list__event--Normal) {
+  border-left-color: var(--gloom-status-healthy);
+}
+
+.theme-dark .application-notice {
+  background: var(--gloom-raised);
+  color: var(--gloom-text);
+}
+
+.theme-dark .application-notice--info {
+  border-left-color: var(--gloom-status-active);
+}
+
+.theme-dark .application-notice--warning {
+  border-left-color: var(--gloom-status-warning);
+}
+
+.theme-dark .application-notice--critical {
+  border-left-color: var(--gloom-status-failed);
+}
+
+.theme-dark .copySuccess {
+  background-color: var(--gloom-status-healthy) !important;
+}
+
+.theme-dark .copyFailure {
+  background-color: var(--gloom-status-failed) !important;
 }
 
 .theme-dark :focus-visible {
