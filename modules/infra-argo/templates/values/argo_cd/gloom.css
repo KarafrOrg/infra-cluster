@@ -66,6 +66,75 @@
   box-shadow: none;
 }
 
+/* Argo gives pod and orphaned nodes an important background color. */
+.theme-dark .application-resource-tree__node--pod {
+  background-color: var(--gloom-raised) !important;
+}
+
+.theme-dark .application-resource-tree__node--orphaned {
+  background-color: var(--gloom-surface) !important;
+  border-style: dashed;
+}
+
+.theme-dark .application-resource-tree__node.active {
+  border-color: var(--gloom-orange);
+}
+
+.theme-dark .application-resource-tree__node-kind {
+  color: var(--gloom-muted);
+}
+
+.theme-dark .application-resource-tree__node-label {
+  background-color: var(--gloom-raised);
+  color: var(--gloom-text);
+  border-color: var(--gloom-border);
+}
+
+.theme-dark .application-resource-tree a.application-resource-tree__node-label.application-resource-tree__node-label--appset,
+.theme-dark .application-resource-tree a.application-resource-tree__node-label.application-resource-tree__node-label--appset:hover {
+  background-color: var(--gloom-raised);
+  color: var(--gloom-orange);
+  border-color: var(--gloom-orange);
+}
+
+.theme-dark .application-resource-tree a.application-resource-tree__node-label.application-resource-tree__node-label--appset:hover {
+  color: var(--gloom-yellow);
+  border-color: var(--gloom-yellow);
+}
+
+.theme-dark .application-resource-tree__node--lower-section__pod-group__pod-container__pods {
+  background-color: var(--gloom-raised);
+}
+
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--healthy"], [class*="__pod--succeeded"]),
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--healthy"], [class*="__pod--succeeded"]):hover {
+  background-color: var(--gloom-status-healthy);
+}
+
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--running"], [class*="__pod--progressing"]),
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--running"], [class*="__pod--progressing"]):hover {
+  background-color: var(--gloom-status-active);
+}
+
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--pending"], [class*="__pod--suspended"]),
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--pending"], [class*="__pod--suspended"]):hover {
+  background-color: var(--gloom-status-warning);
+}
+
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--failed"], [class*="__pod--degraded"]),
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--failed"], [class*="__pod--degraded"]):hover {
+  background-color: var(--gloom-status-failed);
+}
+
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--unknown"], [class*="__pod--missing"]),
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):is([class*="__pod--unknown"], [class*="__pod--missing"]):hover {
+  background-color: var(--gloom-status-unknown);
+}
+
+.theme-dark .application-resource-tree :is(.application-resource-tree__node--lower-section__pod-group__pod, .pod-view__node__pod):not([class*="__pod--healthy"]):not([class*="__pod--succeeded"]) :is(i, svg) {
+  color: #14100d !important;
+}
+
 .theme-dark a:not(.argo-button):not(.sidebar a),
 .theme-dark .settings-overview__redirect-panel__title,
 .theme-dark .top-bar__title,
