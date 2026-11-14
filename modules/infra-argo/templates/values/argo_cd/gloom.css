@@ -1,0 +1,124 @@
+:root {
+  --gloom-background: #0e0e12;
+  --gloom-surface: #18181e;
+  --gloom-raised: #222127;
+  --gloom-border: #38343c;
+  --gloom-text: #e8e5eb;
+  --gloom-muted: #b6afb9;
+  --gloom-orange: #ff9830;
+  --gloom-yellow: #f2c45b;
+  --gloom-avatar: url("https://avatars.githubusercontent.com/u/55988328?v=4");
+}
+
+.sidebar {
+  background: #101015;
+  border-right: 1px solid var(--gloom-border);
+}
+
+.sidebar__logo__character {
+  content: var(--gloom-avatar);
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px solid var(--gloom-orange);
+  border-radius: 50%;
+}
+
+.sidebar__nav-item {
+  color: var(--gloom-muted);
+}
+
+.sidebar__nav-item--active,
+.sidebar__nav-item:hover,
+.sidebar__nav-item--active i {
+  color: var(--gloom-orange);
+}
+
+.sidebar__collapse-button:hover {
+  color: var(--gloom-yellow);
+}
+
+.login {
+  background: radial-gradient(ellipse at 30% 30%, #33201e, #0e0e12 65%);
+  color: var(--gloom-text);
+}
+
+.login .argo__logo {
+  background-image: var(--gloom-avatar);
+  background-size: cover;
+  width: min(45vh, 300px);
+  height: min(45vh, 300px);
+  min-height: 0;
+  border: 3px solid var(--gloom-orange);
+  border-radius: 50%;
+  box-shadow: 0 0 50px #ff983033;
+}
+
+.login__box {
+  background: var(--gloom-surface);
+  border-left: 1px solid var(--gloom-border);
+}
+
+.login__saml-separator > span {
+  background: var(--gloom-surface);
+}
+
+.login .argo-field {
+  color: var(--gloom-text);
+  border-color: var(--gloom-border);
+}
+
+.login .argo-form-row label {
+  color: var(--gloom-muted);
+}
+
+.login .argo-button--base:not([disabled]) {
+  color: #14100d;
+  background: var(--gloom-orange);
+}
+
+.login .argo-button--base:not([disabled]):hover {
+  background: var(--gloom-yellow);
+}
+
+.theme-dark .cd-layout {
+  background: var(--gloom-background);
+}
+
+.theme-dark .white-box,
+.theme-dark .application-resource-tree__node {
+  background: var(--gloom-surface);
+  border-color: var(--gloom-border);
+  color: var(--gloom-text);
+  box-shadow: none;
+}
+
+.theme-dark .applications-list__search-wrapper .applications-list__search {
+  background: var(--gloom-raised);
+  border-color: var(--gloom-border);
+}
+
+.theme-dark .applications-list__view-type i.selected,
+.theme-dark .argo-button:not(.argo-button--base):not([disabled]) {
+  color: var(--gloom-orange);
+}
+
+.theme-dark .argo-button--base:not([disabled]) {
+  background: #bd4d21;
+  color: #fff;
+}
+
+.theme-dark .argo-button--base:not([disabled]):hover {
+  background: #e46725;
+}
+
+.theme-dark .argo-field:focus,
+.theme-dark .argo-textarea:focus,
+.theme-dark .applications-list__search-wrapper .applications-list__search:focus-within {
+  border-color: var(--gloom-orange);
+}
+
+.theme-dark :focus-visible,
+.login :focus-visible {
+  outline: 2px solid var(--gloom-yellow);
+  outline-offset: 2px;
+}

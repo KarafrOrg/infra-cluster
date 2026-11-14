@@ -12,6 +12,9 @@ global:
       effect: NoSchedule
 
 configs:
+  styles: |
+    ${indent(4, ui_styles)}
+
   params:
     server.insecure: true
     otlp.address: ${otlp_address}
