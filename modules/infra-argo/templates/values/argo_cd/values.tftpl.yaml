@@ -346,21 +346,19 @@ notifications:
 
   triggers:
     trigger.on-sync-running: |
-      - when: app.status.operationState != nil and app.status.operationState.phase in ['Running']
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Running'] and app.status.operationState.syncResult != nil and app.status.operationState.syncResult.revision != ''
         send: [app-sync-running]
-        oncePer: app.status.operationState.syncResult.revision
+        oncePer: app.status.operationState.startedAt
     trigger.on-deployed: |
-      - when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.operationState.syncResult != nil and app.status.operationState.syncResult.revision != '' and app.status.health.status == 'Healthy'
         send: [app-deployed]
-        oncePer: app.status.operationState.syncResult.revision
     trigger.on-sync-failed: |
-      - when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed'] and app.status.operationState.syncResult != nil and app.status.operationState.syncResult.revision != ''
         send: [app-failed]
-        oncePer: app.status.operationState.syncResult.revision
+        oncePer: app.status.operationState.startedAt
     trigger.on-health-degraded: |
-      - when: app.status.health.status == 'Degraded'
+      - when: app.status.operationState != nil and app.status.operationState.syncResult != nil and app.status.operationState.syncResult.revision != '' and app.status.health.status == 'Degraded'
         send: [app-failed]
-        oncePer: app.status.operationState.syncResult.revision
 
 redis:
   enabled: false
