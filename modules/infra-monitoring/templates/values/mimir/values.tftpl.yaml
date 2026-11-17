@@ -44,7 +44,17 @@ alertmanager:
       memory: 256Mi
   statefulSet:
     enabled: true
-
+  alertmanagerSpec:
+    secrets:
+      - grafana-irm
+  config:
+    receivers:
+      # Keep your existing receivers!
+      - name: grafana-irm
+        webhook_configs:
+          - url_file: /etc/alertmanager/secrets/grafana-irm/url
+            send_resolved: true
+            max_alerts: 100
 compactor:
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
